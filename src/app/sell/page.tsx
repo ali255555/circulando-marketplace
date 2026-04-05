@@ -34,7 +34,8 @@ export default function SellPage() {
     if (!form.title.trim()) newErrors.title = "El título es obligatorio";
     if (!form.description.trim())
       newErrors.description = "La descripción es obligatoria";
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
+    const priceValue = Number(form.price);
+    if (!form.price || isNaN(priceValue) || priceValue <= 0)
       newErrors.price = "Introduce un precio válido";
     if (!form.category) newErrors.category = "Selecciona una categoría";
     if (!form.condition) newErrors.condition = "Selecciona el estado del artículo";

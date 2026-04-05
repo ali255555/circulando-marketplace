@@ -15,6 +15,16 @@ type SearchParams = Promise<{
   sort?: string;
 }>;
 
+/** Build a /listings URL preserving the given params, overriding the ones in overrides. */
+function buildListingsUrl(overrides: Record<string, string | undefined>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value) params.set(key, value);
+  }
+  const qs = params.toString();
+  return qs ? `/listings?${qs}` : "/listings";
+}
+
 export default async function ListingsPage({
   searchParams,
 }: {
@@ -54,6 +64,12 @@ export default async function ListingsPage({
         "Categoría")
       : "Todos los artículos";
 
+  /** Base params shared across filter links */
+  const baseParams = {
+    q: query || undefined,
+    category: categoryFilter || undefined,
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
@@ -89,7 +105,7 @@ export default async function ListingsPage({
                 {CATEGORIES.map((cat) => (
                   <li key={cat.id}>
                     <Link
-                      href={`/listings?category=${cat.slug}`}
+                      href={buildListingsUrl({ category: cat.slug })}
                       className={`flex justify-between items-center text-sm px-2 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${categoryFilter === cat.slug ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-gray-600"}`}
                     >
                       <span className="flex items-center gap-1.5">
@@ -111,29 +127,22 @@ export default async function ListingsPage({
               <ul className="space-y-1">
                 <li>
                   <Link
-                    href={`/listings${query ? `?q=${encodeURIComponent(query)}` : categoryFilter ? `?category=${categoryFilter}` : ""}`}
+                    href={buildListingsUrl(baseParams)}
                     className={`block text-sm px-2 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${!conditionFilter ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-gray-600"}`}
                   >
                     Todos los estados
                   </Link>
                 </li>
-                {Object.entries(CONDITION_LABELS).map(([value, label]) => {
-                  const base = query
-                    ? `?q=${encodeURIComponent(query)}`
-                    : categoryFilter
-                      ? `?category=${categoryFilter}`
-                      : "?";
-                  return (
-                    <li key={value}>
-                      <Link
-                        href={`/listings${base}&condition=${value}`}
-                        className={`block text-sm px-2 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${conditionFilter === value ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-gray-600"}`}
-                      >
-                        {label}
-                      </Link>
-                    </li>
-                  );
-                })}
+                {Object.entries(CONDITION_LABELS).map(([value, label]) => (
+                  <li key={value}>
+                    <Link
+                      href={buildListingsUrl({ ...baseParams, condition: value })}
+                      className={`block text-sm px-2 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${conditionFilter === value ? "bg-emerald-50 text-emerald-700 font-semibold" : "text-gray-600"}`}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -152,24 +161,15 @@ export default async function ListingsPage({
                 { value: "price_asc", label: "Precio: menor a mayor" },
                 { value: "price_desc", label: "Precio: mayor a menor" },
                 { value: "co2", label: "Más sostenible" },
-              ].map((opt) => {
-                const base = query
-                  ? `?q=${encodeURIComponent(query)}`
-                  : categoryFilter
-                    ? `?category=${categoryFilter}`
-                    : "?";
-                const sep =
-                  base.includes("?") && base.length > 1 ? "&" : "?";
-                return (
-                  <Link
-                    key={opt.value}
-                    href={`/listings${base}${sep.includes("?") ? "" : sep}sort=${opt.value}`}
-                    className={`text-xs px-3 py-1 rounded-full transition-colors ${sortOption === opt.value ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-                  >
-                    {opt.label}
-                  </Link>
-                );
-              })}
+              ].map((opt) => (
+                <Link
+                  key={opt.value}
+                  href={buildListingsUrl({ ...baseParams, sort: opt.value })}
+                  className={`text-xs px-3 py-1 rounded-full transition-colors ${sortOption === opt.value ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                >
+                  {opt.label}
+                </Link>
+              ))}
             </div>
           </div>
 
