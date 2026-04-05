@@ -400,10 +400,16 @@
   }
 
   /* ════════════════════════════════════════
+     Constants
+  ════════════════════════════════════════ */
+  const SMS_EXPIRY_MS  = 10 * 60 * 1000; // 10 minutes
+  const SMS_CODE_REGEX = /^\d{6}$/;
+
+  /* ════════════════════════════════════════
      Validation
   ════════════════════════════════════════ */
   function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
   }
 
   function isValidPhone(phone) {
@@ -420,7 +426,9 @@
      SMS (simulated)
   ════════════════════════════════════════ */
   function generateSMSCode() {
-    return Math.random().toString().slice(2, 8).padStart(6, '0');
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return (array[0] % 1000000).toString().padStart(6, '0');
   }
 
   function sendSMS(phoneNumber, code) {
@@ -547,7 +555,7 @@
     if (!isValidEmail(email)) {
       setFieldError('inputEmail', 'emailError', 'Introduce un email válido');
       valid = false;
-    } else if (state.registeredEmails.includes(email.toLowerCase())) {
+    } else if (state.registeredEmails.includes(email.trim().toLowerCase())) {
       setFieldError('inputEmail', 'emailError', 'Este email ya está registrado');
       valid = false;
     }
@@ -559,8 +567,8 @@
     } else if (state.blacklistedPhones.includes(normPhone)) {
       setFieldError('inputPhone', 'phoneError', '⚠️ Este número está bloqueado por actividad fraudulenta');
       valid = false;
-    } else if (state.registeredPhones.includes(normPhone) && valid) {
-      // Phone already has account – allow re-login flow silently
+    } else if (state.registeredPhones.includes(normPhone)) {
+      setFieldError('inputPhone', 'phoneError', 'Este número ya tiene una cuenta. Si eres tú, verifica el código que te enviaremos.');
     }
 
     if (!valid) return;
@@ -568,7 +576,7 @@
     // Generate and send code
     const code = generateSMSCode();
     state.smsCode   = code;
-    state.smsExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    state.smsExpiry = new Date(Date.now() + SMS_EXPIRY_MS);
     sendSMS(normPhone, code);
 
     // Store temp user data
@@ -607,7 +615,7 @@
     if (!state.pendingPhone || !state.smsCode) return;
     const code = generateSMSCode();
     state.smsCode   = code;
-    state.smsExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    state.smsExpiry = new Date(Date.now() + SMS_EXPIRY_MS);
     sendSMS(state.pendingPhone, code);
     $('devCodeDisplay').textContent = `[DEV] Código: ${code}`;
     startResendTimer();
@@ -618,7 +626,7 @@
     clearErrors();
     const entered = $('inputCode').value.trim();
 
-    if (!/^\d{6}$/.test(entered)) {
+    if (!SMS_CODE_REGEX.test(entered)) {
       setFieldError('inputCode', 'codeError', 'El código debe ser de 6 dígitos');
       return;
     }
@@ -639,17 +647,18 @@
   }
 
   function registerUser(email, phone) {
+    const normalizedEmail = email.trim().toLowerCase();
     // Persist (only add if new phone)
     if (!state.registeredPhones.includes(phone)) {
       state.registeredPhones.push(phone);
       localStorage.setItem('reg_phones', JSON.stringify(state.registeredPhones));
     }
-    if (!state.registeredEmails.includes(email.toLowerCase())) {
-      state.registeredEmails.push(email.toLowerCase());
+    if (!state.registeredEmails.includes(normalizedEmail)) {
+      state.registeredEmails.push(normalizedEmail);
       localStorage.setItem('reg_emails', JSON.stringify(state.registeredEmails));
     }
 
-    const user = { email, phone };
+    const user = { email: normalizedEmail, phone };
     state.currentUser  = user;
     state.loggedInUser = user;
     localStorage.setItem('current_user', JSON.stringify(user));
