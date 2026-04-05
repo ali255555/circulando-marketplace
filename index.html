@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulando – Marketplace Sostenible</title>
+  <style>
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:      #2ecc71;
+      --green-dark: #27ae60;
+      --teal:       #1abc9c;
+      --blue:       #3498db;
+      --blue-dark:  #2980b9;
+      --orange:     #e67e22;
+      --red:        #e74c3c;
+      --dark:       #2c3e50;
+      --mid:        #7f8c8d;
+      --light:      #ecf0f1;
+      --white:      #ffffff;
+      --shadow:     0 4px 20px rgba(0,0,0,.12);
+      --radius:     12px;
+      --radius-sm:  8px;
+      --transition: .3s ease;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* =============================================
+       UTILITY
+    ============================================= */
+    .hidden  { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    /* =============================================
+       OVERLAY / MODAL BACKDROP
+    ============================================= */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    /* =============================================
+       LANDING PAGE
+    ============================================= */
+    #landing {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d4d2f 0%, #1a7a4a 40%, #2ecc71 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 2rem;
+    }
+    .landing-logo {
+      width: 90px; height: 90px;
+      background: var(--white);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 0 40px rgba(255,255,255,.3);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    .landing-logo svg { width: 52px; height: 52px; fill: var(--green-dark); }
+    .landing-title {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -1px;
+      text-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+    .landing-subtitle {
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: rgba(255,255,255,.85);
+      margin: .75rem 0 2.5rem;
+      font-weight: 300;
+    }
+    .landing-tagline {
+      font-size: clamp(.9rem, 2.5vw, 1.1rem);
+      color: rgba(255,255,255,.7);
+      margin-bottom: 3rem;
+      font-style: italic;
+    }
+    .landing-buttons {
+      display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+    }
+    .btn-landing {
+      padding: .9rem 2.5rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .btn-landing:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.3); }
+    .btn-landing:active { transform: translateY(0); }
+    .btn-compraventa {
+      background: var(--white);
+      color: var(--green-dark);
+    }
+    .btn-trueque {
+      background: var(--orange);
+      color: var(--white);
+    }
+    .landing-stats {
+      display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;
+      margin-top: 3rem;
+    }
+    .stat-item { color: rgba(255,255,255,.9); text-align: center; }
+    .stat-number { font-size: 1.8rem; font-weight: 800; }
+    .stat-label  { font-size: .8rem; opacity: .8; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* =============================================
+       INTERSTITIAL
+    ============================================= */
+    #interstitial .overlay-box {
+      background: var(--dark);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      color: var(--white);
+      animation: slideUp .4s ease;
+    }
+    .interstitial-icon {
+      width: 70px; height: 70px;
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+    }
+    .interstitial-title { font-size: 1.6rem; font-weight: 700; margin-bottom: .75rem; }
+    .interstitial-text  { color: rgba(255,255,255,.75); line-height: 1.6; margin-bottom: 1.5rem; }
+    .interstitial-timer {
+      font-size: 1.1rem;
+      color: var(--green);
+      margin-bottom: 1.5rem;
+    }
+    .progress-bar-wrap {
+      height: 6px;
+      background: rgba(255,255,255,.15);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+      border-radius: 3px;
+      width: 100%;
+      transition: width 1s linear;
+    }
+    .btn-skip {
+      background: transparent;
+      color: rgba(255,255,255,.5);
+      font-size: .85rem;
+      border-bottom: 1px dashed rgba(255,255,255,.3);
+    }
+
+    /* =============================================
+       MAIN APP SHELL
+    ============================================= */
+    #app { display: none; flex-direction: column; min-height: 100vh; }
+
+    /* --- Header --- */
+    header {
+      background: linear-gradient(135deg, #0d4d2f 0%, #1a7a4a 100%);
+      color: var(--white);
+      padding: .75rem 1.5rem;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+    .header-top {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1200px; margin: 0 auto; gap: 1rem; flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: .75rem; }
+    .header-logo {
+      width: 40px; height: 40px;
+      background: var(--white);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .header-logo svg { width: 24px; height: 24px; fill: var(--green-dark); }
+    .header-brand { font-size: 1.4rem; font-weight: 800; }
+    .header-mode-badge {
+      background: rgba(255,255,255,.15);
+      padding: .2rem .75rem;
+      border-radius: 20px;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+    .header-actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    .btn-back {
+      background: rgba(255,255,255,.15);
+      color: var(--white);
+      padding: .45rem .9rem;
+      border-radius: 20px;
+      font-size: .85rem;
+      font-weight: 600;
+      display: flex; align-items: center; gap: .35rem;
+      transition: background var(--transition);
+    }
+    .btn-back:hover { background: rgba(255,255,255,.3); }
+    .btn-register {
+      background: var(--white);
+      color: var(--green-dark);
+      padding: .45rem 1.2rem;
+      border-radius: 20px;
+      font-size: .85rem;
+      font-weight: 700;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .btn-register:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+    .btn-valuation {
+      background: var(--orange);
+      color: var(--white);
+      padding: .45rem 1.2rem;
+      border-radius: 20px;
+      font-size: .85rem;
+      font-weight: 700;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .btn-valuation:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+
+    /* Search bar */
+    .search-bar {
+      max-width: 1200px; margin: .75rem auto 0;
+      display: flex; gap: .5rem;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: .6rem 1rem;
+      border-radius: 25px;
+      border: none;
+      font-size: .95rem;
+      background: rgba(255,255,255,.95);
+      color: var(--dark);
+    }
+    .search-bar input:focus { outline: 2px solid var(--teal); }
+    .btn-search {
+      background: var(--teal);
+      color: var(--white);
+      padding: .6rem 1.2rem;
+      border-radius: 25px;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    /* Category tabs */
+    .categories-bar {
+      background: rgba(0,0,0,.15);
+      padding: .5rem 1.5rem;
+    }
+    .categories-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; gap: .5rem; overflow-x: auto; scrollbar-width: none;
+    }
+    .categories-inner::-webkit-scrollbar { display: none; }
+    .cat-tab {
+      background: rgba(255,255,255,.15);
+      color: rgba(255,255,255,.85);
+      padding: .35rem .9rem;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background var(--transition), color var(--transition);
+    }
+    .cat-tab.active, .cat-tab:hover {
+      background: var(--white);
+      color: var(--green-dark);
+    }
+
+    /* --- Main content --- */
+    main {
+      flex: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 1.5rem;
+      width: 100%;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .section-title span { color: var(--green-dark); }
+    .badge-count {
+      background: var(--green);
+      color: var(--white);
+      border-radius: 20px;
+      font-size: .75rem;
+      padding: .15rem .55rem;
+    }
+
+    /* Product grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .product-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition);
+      cursor: pointer;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    }
+    .product-image {
+      position: relative;
+      height: 180px;
+      overflow: hidden;
+    }
+    .product-image img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .5s ease;
+    }
+    .product-card:hover .product-image img { transform: scale(1.05); }
+    .product-badge {
+      position: absolute; top: .6rem; left: .6rem;
+      padding: .2rem .6rem;
+      border-radius: 12px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .badge-venta  { background: var(--green);  color: var(--white); }
+    .badge-trueque{ background: var(--orange); color: var(--white); }
+    .badge-nuevo  { background: var(--blue);   color: var(--white); }
+    .badge-usado  { background: var(--mid);    color: var(--white); }
+    .product-fav  {
+      position: absolute; top: .6rem; right: .6rem;
+      background: var(--white);
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      transition: transform var(--transition);
+    }
+    .product-fav:hover { transform: scale(1.2); }
+    .product-info { padding: 1rem; }
+    .product-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: .3rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .product-desc {
+      font-size: .8rem;
+      color: var(--mid);
+      margin-bottom: .6rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .product-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+    .product-price {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--green-dark);
+    }
+    .product-price.trueque-price { color: var(--orange); font-size: .95rem; }
+    .product-rating {
+      display: flex; align-items: center; gap: .2rem;
+      font-size: .8rem;
+      color: #f39c12;
+    }
+    .product-rating .count { color: var(--mid); }
+    .product-location {
+      font-size: .75rem;
+      color: var(--mid);
+      display: flex; align-items: center; gap: .3rem;
+      margin-bottom: .75rem;
+    }
+    .btn-contact {
+      width: 100%;
+      background: var(--green-dark);
+      color: var(--white);
+      padding: .55rem;
+      border-radius: var(--radius-sm);
+      font-size: .88rem;
+      font-weight: 600;
+      transition: background var(--transition), transform var(--transition);
+    }
+    .btn-contact:hover { background: var(--green); transform: translateY(-1px); }
+    .btn-contact.trueque { background: var(--orange); }
+    .btn-contact.trueque:hover { background: #d35400; }
+
+    /* --- Footer --- */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,.75);
+      padding: 2rem 1.5rem;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 2rem;
+    }
+    .footer-col h4 { color: var(--white); font-size: .95rem; margin-bottom: 1rem; }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: .5rem; font-size: .85rem; }
+    .footer-col ul li a { color: rgba(255,255,255,.65); transition: color var(--transition); }
+    .footer-col ul li a:hover { color: var(--green); }
+    .footer-bottom {
+      max-width: 1200px; margin: 1.5rem auto 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: .75rem;
+      font-size: .8rem;
+    }
+    .footer-eco {
+      display: flex; align-items: center; gap: .5rem;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    /* =============================================
+       MODALS
+    ============================================= */
+    .modal-box {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      animation: slideUp .35s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .modal-header h2 { font-size: 1.3rem; font-weight: 700; }
+    .modal-close {
+      background: var(--light);
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      color: var(--mid);
+      transition: background var(--transition), color var(--transition);
+      flex-shrink: 0;
+      margin-left: .5rem;
+    }
+    .modal-close:hover { background: var(--red); color: var(--white); }
+    .modal-subtitle { font-size: .88rem; color: var(--mid); margin-top: .25rem; }
+
+    /* Registration steps */
+    .steps-indicator {
+      display: flex; align-items: center; justify-content: center;
+      gap: .5rem; margin-bottom: 2rem;
+    }
+    .step-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: 700;
+      background: var(--light); color: var(--mid);
+      transition: background var(--transition), color var(--transition);
+      position: relative;
+    }
+    .step-dot.active { background: var(--green-dark); color: var(--white); }
+    .step-dot.done   { background: var(--green);      color: var(--white); }
+    .step-line {
+      flex: 1; height: 2px; max-width: 60px;
+      background: var(--light);
+      border-radius: 1px;
+    }
+    .step-line.done { background: var(--green); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      font-size: .88rem; font-weight: 600;
+      color: var(--dark); margin-bottom: .4rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: .7rem 1rem;
+      border: 2px solid var(--light);
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      transition: border-color var(--transition);
+    }
+    .form-group input:focus { outline: none; border-color: var(--green-dark); }
+    .form-group input.error { border-color: var(--red); }
+    .form-error { font-size: .8rem; color: var(--red); margin-top: .3rem; }
+    .form-hint  { font-size: .8rem; color: var(--mid); margin-top: .3rem; font-style: italic; }
+    .slogan-box {
+      background: linear-gradient(135deg, #e8f8f0, #d4efdf);
+      border-left: 4px solid var(--green-dark);
+      border-radius: var(--radius-sm);
+      padding: .85rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .slogan-box p { font-size: .88rem; color: var(--green-dark); font-weight: 600; font-style: italic; }
+    .phone-row { display: flex; gap: .5rem; }
+    .phone-prefix {
+      width: 80px;
+      padding: .7rem .5rem;
+      border: 2px solid var(--light);
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      background: var(--light);
+      color: var(--dark);
+    }
+    .sms-row { display: flex; gap: .5rem; align-items: flex-end; }
+    .sms-row input { flex: 1; }
+    .btn-sms {
+      background: var(--blue);
+      color: var(--white);
+      padding: .7rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: .85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background var(--transition);
+    }
+    .btn-sms:hover { background: var(--blue-dark); }
+    .btn-sms:disabled { background: var(--mid); cursor: not-allowed; }
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: var(--white);
+      padding: .8rem;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: .5rem;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,204,113,.4); }
+    .btn-primary:disabled { background: var(--mid); transform: none; box-shadow: none; cursor: not-allowed; }
+    .loader {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: .4rem;
+    }
+    .success-box {
+      text-align: center; padding: 1rem 0;
+    }
+    .success-icon {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 2.2rem;
+      animation: bounce 1s ease;
+    }
+    .success-box h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: .5rem; }
+    .success-box p  { color: var(--mid); line-height: 1.6; }
+
+    /* =============================================
+       VALUATION AGENT MODAL
+    ============================================= */
+    #valuationModal .modal-box { max-width: 600px; }
+    .valuation-search {
+      display: flex; gap: .5rem; margin-bottom: 1.5rem;
+    }
+    .valuation-search input {
+      flex: 1;
+      padding: .7rem 1rem;
+      border: 2px solid var(--light);
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+    }
+    .valuation-search input:focus { outline: none; border-color: var(--orange); }
+    .btn-analyze {
+      background: var(--orange);
+      color: var(--white);
+      padding: .7rem 1.2rem;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+    .btn-analyze:hover { background: #d35400; }
+    .val-product-selector {
+      display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.5rem;
+    }
+    .val-chip {
+      background: var(--light);
+      color: var(--dark);
+      padding: .3rem .75rem;
+      border-radius: 20px;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .val-chip:hover, .val-chip.selected {
+      background: var(--orange);
+      color: var(--white);
+    }
+    .val-results { display: none; }
+    .val-results.show { display: block; }
+    .val-header {
+      display: flex; align-items: center; gap: 1rem;
+      background: linear-gradient(135deg, #fff8f0, #fdebd0);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .val-icon {
+      width: 52px; height: 52px;
+      background: var(--orange);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    .val-product-name { font-size: 1rem; font-weight: 700; margin-bottom: .2rem; }
+    .val-certainty    { font-size: .8rem; color: var(--green-dark); font-weight: 600; }
+    .val-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+      margin-bottom: 1rem;
+    }
+    .val-card {
+      border-radius: var(--radius-sm);
+      padding: .85rem;
+      text-align: center;
+    }
+    .val-card.low  { background: #eafaf1; border: 1px solid #a9dfbf; }
+    .val-card.high { background: #fef9e7; border: 1px solid #f9e79f; }
+    .val-card.rec  { background: #eaf2ff; border: 1px solid #aed6f1; grid-column: span 2; }
+    .val-card-label { font-size: .75rem; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .3rem; }
+    .val-card-source { font-size: .7rem; color: var(--mid); }
+    .val-card-price  { font-size: 1.3rem; font-weight: 800; color: var(--dark); }
+    .val-card.rec .val-card-price { color: var(--blue-dark); font-size: 1.5rem; }
+    .val-condition-row {
+      display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .condition-btn {
+      flex: 1; min-width: 80px;
+      padding: .45rem;
+      border-radius: var(--radius-sm);
+      font-size: .82rem; font-weight: 600;
+      border: 2px solid var(--light);
+      background: var(--white);
+      transition: all var(--transition);
+    }
+    .condition-btn.sel {
+      border-color: var(--orange);
+      background: var(--orange);
+      color: var(--white);
+    }
+    .val-damage-area { margin-bottom: 1rem; }
+    .val-damage-area label { font-size: .88rem; font-weight: 600; margin-bottom: .4rem; display: block; }
+    .val-damage-area input {
+      width: 100%;
+      padding: .6rem .85rem;
+      border: 2px solid var(--light);
+      border-radius: var(--radius-sm);
+      font-size: .88rem;
+    }
+    .val-damage-area input:focus { outline: none; border-color: var(--orange); }
+    .damage-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+    .damage-tag {
+      background: #fde9e9;
+      color: var(--red);
+      padding: .2rem .6rem;
+      border-radius: 12px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .val-breakdown {
+      background: var(--light);
+      border-radius: var(--radius-sm);
+      padding: .85rem;
+      font-size: .82rem;
+    }
+    .val-breakdown h4 { font-weight: 700; margin-bottom: .5rem; font-size: .88rem; }
+    .breakdown-row {
+      display: flex; justify-content: space-between;
+      padding: .2rem 0;
+      border-bottom: 1px dashed rgba(0,0,0,.08);
+    }
+    .breakdown-row:last-child { border: none; }
+    .breakdown-row .label { color: var(--mid); }
+    .breakdown-row .value { font-weight: 600; }
+    .breakdown-row .value.neg { color: var(--red); }
+    .breakdown-row .value.pos { color: var(--green-dark); }
+    .breakdown-total {
+      display: flex; justify-content: space-between;
+      padding: .5rem 0 0;
+      font-size: 1rem; font-weight: 800;
+      border-top: 2px solid var(--dark);
+      margin-top: .25rem;
+    }
+
+    /* =============================================
+       ILA PRESENTER
+    ============================================= */
+    #ila-bubble {
+      position: fixed;
+      bottom: 1.5rem; right: 1.5rem;
+      z-index: 500;
+      display: flex; flex-direction: column; align-items: flex-end; gap: .75rem;
+    }
+    .ila-toggle {
+      width: 58px; height: 58px;
+      background: linear-gradient(135deg, var(--green-dark), var(--teal));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+      transition: transform var(--transition);
+      border: 3px solid var(--white);
+    }
+    .ila-toggle:hover { transform: scale(1.1); }
+    .ila-panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      max-width: 280px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.2);
+      animation: slideUp .3s ease;
+    }
+    .ila-panel.hidden { display: none; }
+    .ila-panel-header {
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: .75rem;
+    }
+    .ila-avatar {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--green-dark), var(--teal));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .ila-name { font-weight: 700; font-size: .95rem; }
+    .ila-subtitle { font-size: .72rem; color: var(--green-dark); }
+    .ila-message {
+      font-size: .85rem;
+      line-height: 1.6;
+      color: var(--dark);
+      margin-bottom: .75rem;
+    }
+    .ila-slogan {
+      background: linear-gradient(135deg, #e8f8f0, #d4efdf);
+      border-left: 3px solid var(--green-dark);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: .6rem .75rem;
+      font-size: .8rem;
+      color: var(--green-dark);
+      font-style: italic;
+      font-weight: 600;
+    }
+
+    /* =============================================
+       TOAST NOTIFICATIONS
+    ============================================= */
+    #toast-container {
+      position: fixed; top: 1rem; right: 1rem;
+      z-index: 2000;
+      display: flex; flex-direction: column; gap: .5rem;
+    }
+    .toast {
+      background: var(--dark);
+      color: var(--white);
+      padding: .75rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-size: .88rem;
+      box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: .5rem;
+      animation: slideUp .3s ease;
+      max-width: 320px;
+    }
+    .toast.success { background: var(--green-dark); }
+    .toast.error   { background: var(--red); }
+    .toast.info    { background: var(--blue-dark); }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 768px) {
+      .header-actions { width: 100%; justify-content: flex-start; }
+      .product-grid   { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); }
+      .product-image  { height: 140px; }
+      .val-grid       { grid-template-columns: 1fr; }
+      .val-card.rec   { grid-column: span 1; }
+      .footer-inner   { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      main { padding: 1rem; }
+      .product-grid { grid-template-columns: 1fr 1fr; gap: .75rem; }
+      .product-image { height: 120px; }
+      .product-info  { padding: .75rem; }
+      .footer-inner  { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============================================
+     TOAST CONTAINER
+============================================= -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- =============================================
+     LANDING PAGE
+============================================= -->
+<section id="landing">
+  <div class="landing-logo">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+    </svg>
+  </div>
+  <h1 class="landing-title">Circulando</h1>
+  <p class="landing-subtitle">Marketplace Sostenible de Segunda Mano</p>
+  <p class="landing-tagline">♻️ Dale una segunda vida a tus objetos</p>
+  <div class="landing-buttons">
+    <button class="btn-landing btn-compraventa" onclick="startMode('compraventa')">
+      🛒 Compra &amp; Venta
+    </button>
+    <button class="btn-landing btn-trueque" onclick="startMode('trueque')">
+      🔄 Trueque
+    </button>
+  </div>
+  <div class="landing-stats">
+    <div class="stat-item">
+      <div class="stat-number">12.400+</div>
+      <div class="stat-label">Productos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">8.200+</div>
+      <div class="stat-label">Usuarios</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">95%</div>
+      <div class="stat-label">Satisfacción</div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     INTERSTITIAL
+============================================= -->
+<div id="interstitial" class="overlay hidden">
+  <div class="overlay-box">
+    <div class="interstitial-icon">♻️</div>
+    <h2 class="interstitial-title">¡Bienvenid@ a Circulando!</h2>
+    <p class="interstitial-text">
+      Aquí compras, vendes e intercambias de forma segura y sostenible.
+      Cada artículo que circula es un paso hacia un mundo mejor.
+    </p>
+    <div class="interstitial-timer">Entrando en <strong id="countdown">5</strong> segundos…</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <button class="btn-skip" onclick="finishInterstitial()">Saltar →</button>
+  </div>
+</div>
+
+<!-- =============================================
+     MAIN APP
+============================================= -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="header-left">
+        <div class="header-logo">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+          </svg>
+        </div>
+        <span class="header-brand">Circulando</span>
+        <span class="header-mode-badge" id="mode-badge">Compra &amp; Venta</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-back" onclick="goBack()">← Inicio</button>
+        <button class="btn-valuation" onclick="openValuation()">🔍 Valorar artículo</button>
+        <button class="btn-register" onclick="openRegister()">👤 Registrarse</button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Buscar productos..." oninput="filterProducts()" />
+      <button class="btn-search" onclick="filterProducts()">🔍 Buscar</button>
+    </div>
+    <div class="categories-bar">
+      <div class="categories-inner" id="categories-inner">
+        <button class="cat-tab active" onclick="filterByCategory(this,'all')">🏠 Todos</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'moviles')">📱 Móviles</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'consolas')">🎮 Consolas</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'hogar')">🏡 Hogar</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'moda')">👗 Moda</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'deportes')">⚽ Deportes</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'libros')">📚 Libros</button>
+        <button class="cat-tab" onclick="filterByCategory(this,'electronica')">💻 Electrónica</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <div class="section-title">
+      <span id="section-label">🛒 Compra &amp; Venta</span>
+      <span class="badge-count" id="product-count">0</span>
+      productos
+    </div>
+    <div class="product-grid" id="product-grid"></div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h4>Circulando</h4>
+        <ul>
+          <li><a href="#">Sobre nosotros</a></li>
+          <li><a href="#">Cómo funciona</a></li>
+          <li><a href="#">Blog sostenible</a></li>
+          <li><a href="#">Prensa</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Comprar y vender</h4>
+        <ul>
+          <li><a href="#">Publicar anuncio</a></li>
+          <li><a href="#">Mis favoritos</a></li>
+          <li><a href="#">Mis compras</a></li>
+          <li><a href="#">Mis ventas</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Trueque</h4>
+        <ul>
+          <li><a href="#">Proponer trueque</a></li>
+          <li><a href="#">Mis intercambios</a></li>
+          <li><a href="#">Guía de trueque</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Ayuda</h4>
+        <ul>
+          <li><a href="#">Centro de ayuda</a></li>
+          <li><a href="#">Seguridad</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Circulando. Todos los derechos reservados.</p>
+      <div class="footer-eco">🌱 Plataforma comprometida con el medio ambiente</div>
+    </div>
+  </footer>
+</div><!-- /app -->
+
+<!-- =============================================
+     REGISTRATION MODAL (3 steps)
+============================================= -->
+<div id="registerModal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="reg-title">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <h2 id="reg-title">Crear cuenta segura</h2>
+        <p class="modal-subtitle">Tu privacidad y seguridad son nuestra prioridad</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('registerModal')" aria-label="Cerrar">✕</button>
+    </div>
+
+    <!-- Steps indicator -->
+    <div class="steps-indicator" aria-label="Progreso de registro">
+      <div class="step-dot active" id="step-dot-1" aria-label="Paso 1: Email">1</div>
+      <div class="step-line" id="step-line-1"></div>
+      <div class="step-dot" id="step-dot-2" aria-label="Paso 2: Móvil">2</div>
+      <div class="step-line" id="step-line-2"></div>
+      <div class="step-dot" id="step-dot-3" aria-label="Paso 3: Verificar">3</div>
+    </div>
+
+    <div class="slogan-box">
+      <p>💬 "El email es para registrarte, el número para protegerte"</p>
+    </div>
+
+    <!-- Step 1: Email + Password -->
+    <div id="reg-step-1">
+      <div class="form-group">
+        <label for="reg-email">Correo electrónico *</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email" />
+        <p class="form-error hidden" id="err-email">Introduce un email válido</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-name">Nombre de usuario *</label>
+        <input type="text" id="reg-name" placeholder="Ej: María_García" autocomplete="username" />
+        <p class="form-error hidden" id="err-name">Mínimo 3 caracteres</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-pass">Contraseña *</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
+        <p class="form-hint">Al menos 8 caracteres, una mayúscula y un número</p>
+        <p class="form-error hidden" id="err-pass">La contraseña no cumple los requisitos</p>
+      </div>
+      <button class="btn-primary" onclick="regStep1Next()">Continuar →</button>
+    </div>
+
+    <!-- Step 2: Mobile -->
+    <div id="reg-step-2" class="hidden">
+      <div class="form-group">
+        <label for="reg-phone">Número de móvil *</label>
+        <div class="phone-row">
+          <select class="phone-prefix" id="reg-prefix" aria-label="Prefijo de país">
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+52">🇲🇽 +52</option>
+            <option value="+54">🇦🇷 +54</option>
+          </select>
+          <input type="tel" id="reg-phone" placeholder="612 345 678" autocomplete="tel" style="flex:1" />
+        </div>
+        <p class="form-hint">Este número no será visible públicamente</p>
+        <p class="form-error hidden" id="err-phone">Número no válido (9 dígitos)</p>
+      </div>
+      <p style="font-size:.85rem;color:var(--mid);margin-bottom:1.25rem;line-height:1.6">
+        🛡️ Usamos tu número de móvil para verificar tu identidad y evitar cuentas duplicadas.
+        No lo compartiremos con terceros.
+      </p>
+      <div style="display:flex;gap:.75rem">
+        <button class="btn-primary" style="background:var(--mid);flex:.4" onclick="regGoBack()">← Atrás</button>
+        <button class="btn-primary" style="flex:.6" onclick="regStep2Next()">Enviar SMS →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: SMS verification -->
+    <div id="reg-step-3" class="hidden">
+      <p style="font-size:.9rem;margin-bottom:1rem;color:var(--mid)">
+        Hemos enviado un código de 6 dígitos a <strong id="display-phone" style="color:var(--dark)"></strong>
+      </p>
+      <div class="form-group">
+        <label for="reg-sms">Código de verificación *</label>
+        <div class="sms-row">
+          <input type="text" id="reg-sms" placeholder="_ _ _ _ _ _" maxlength="6"
+                 inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
+          <button class="btn-sms" id="btn-resend" onclick="resendSMS()">Reenviar</button>
+        </div>
+        <p class="form-error hidden" id="err-sms">Código incorrecto</p>
+        <p class="form-hint">📟 El código aparece en la consola del navegador (simulación)</p>
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <button class="btn-primary" style="background:var(--mid);flex:.4" onclick="regGoBack2()">← Atrás</button>
+        <button class="btn-primary" style="flex:.6" onclick="regStep3Verify()">
+          <span id="verify-loader" class="loader hidden"></span>Verificar y crear cuenta
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Success -->
+    <div id="reg-step-4" class="hidden">
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <h3>¡Cuenta creada con éxito!</h3>
+        <p>Bienvenid@ a Circulando. Ya puedes comprar, vender e intercambiar de forma segura.</p>
+        <button class="btn-primary" style="margin-top:1.5rem" onclick="closeModal('registerModal')">Empezar a explorar →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================
+     VALUATION AGENT MODAL
+============================================= -->
+<div id="valuationModal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="val-title">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <h2 id="val-title">🔍 Agente de Valoración</h2>
+        <p class="modal-subtitle">Precios de mercado con 99% de certeza</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('valuationModal')" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="valuation-search">
+      <input type="text" id="val-search" placeholder="Ej: iPhone 13, PlayStation 5, Nike Air Max…"
+             oninput="suggestProducts()" autocomplete="off" />
+      <button class="btn-analyze" onclick="analyzeValuation()">Analizar 🔍</button>
+    </div>
+
+    <div class="val-product-selector" id="val-suggestions"></div>
+
+    <!-- Condition selector -->
+    <div style="margin-bottom:1rem">
+      <p style="font-size:.88rem;font-weight:600;margin-bottom:.5rem">Estado del artículo:</p>
+      <div class="val-condition-row">
+        <button class="condition-btn sel" onclick="selectCondition(this,'nuevo')">✨ Nuevo</button>
+        <button class="condition-btn" onclick="selectCondition(this,'comoBueno')">👍 Como nuevo</button>
+        <button class="condition-btn" onclick="selectCondition(this,'bueno')">✅ Bueno</button>
+        <button class="condition-btn" onclick="selectCondition(this,'aceptable')">⚠️ Aceptable</button>
+      </div>
+    </div>
+
+    <!-- Damage description -->
+    <div class="val-damage-area">
+      <label for="val-damage">Describe daños o defectos (opcional):</label>
+      <input type="text" id="val-damage" placeholder="Ej: pantalla rayada, batería al 80%, carcasa rota…"
+             oninput="analyzeDamage()" />
+      <div class="damage-tags" id="damage-tags"></div>
+    </div>
+
+    <!-- Results -->
+    <div class="val-results" id="val-results">
+      <div class="val-header">
+        <div class="val-icon">🏷️</div>
+        <div>
+          <div class="val-product-name" id="val-res-name">–</div>
+          <div class="val-certainty">✅ Certeza: 99% · Fuentes: Idealo + El Corte Inglés</div>
+        </div>
+      </div>
+      <div class="val-grid">
+        <div class="val-card low">
+          <div class="val-card-label">Precio mínimo</div>
+          <div class="val-card-price" id="val-price-low">–</div>
+          <div class="val-card-source">Fuente: Idealo</div>
+        </div>
+        <div class="val-card high">
+          <div class="val-card-label">Precio máximo</div>
+          <div class="val-card-price" id="val-price-high">–</div>
+          <div class="val-card-source">Fuente: El Corte Inglés</div>
+        </div>
+        <div class="val-card rec">
+          <div class="val-card-label">💡 Precio recomendado para venta</div>
+          <div class="val-card-price" id="val-price-rec">–</div>
+          <div class="val-card-source">Calculado según estado y mercado actual</div>
+        </div>
+      </div>
+      <div class="val-breakdown" id="val-breakdown"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================
+     ILA PRESENTER (floating bubble)
+============================================= -->
+<div id="ila-bubble" class="hidden">
+  <div class="ila-panel" id="ila-panel">
+    <div class="ila-panel-header">
+      <div class="ila-avatar">🤖</div>
+      <div>
+        <div class="ila-name">ILA</div>
+        <div class="ila-subtitle">Asistente de Circulando</div>
+      </div>
+    </div>
+    <p class="ila-message">
+      ¡Hola! Soy ILA, tu asistente de Circulando. 
+      Puedo ayudarte a valorar artículos, encontrar los mejores precios y 
+      hacer que tu experiencia sea segura. 🌱
+    </p>
+    <div class="ila-slogan">
+      "El email es para registrarte, el número para protegerte"
+    </div>
+  </div>
+  <button class="ila-toggle" onclick="toggleIla()" aria-label="Abrir/cerrar asistente ILA">🤖</button>
+</div>
+
+<!-- =============================================
+     JAVASCRIPT
+============================================= -->
+<script>
+/* ============================================
+   STATE
+============================================ */
+const state = {
+  mode: 'compraventa',
+  currentCategory: 'all',
+  currentStep: 1,
+  registeredEmails: JSON.parse(localStorage.getItem('circ_emails') || '[]'),
+  registeredPhones: JSON.parse(localStorage.getItem('circ_phones') || '[]'),
+  smsCode: null,
+  regData: {},
+  selectedCondition: 'nuevo',
+  selectedProduct: null,
+  ilaOpen: true,
+};
+
+/* ============================================
+   PRODUCTS DATABASE
+============================================ */
+const PRODUCTS_COMPRAVENTA = [
+  {
+    id: 1, category: 'moviles',
+    title: 'iPhone 13 Pro 256GB',
+    desc: 'En perfecto estado, sin rayaduras. Incluye cargador y funda original.',
+    price: 649, image: 'https://via.placeholder.com/300x200/1abc9c/ffffff?text=iPhone+13+Pro',
+    location: 'Madrid', rating: 4.8, reviews: 23, badge: 'usado', fav: false,
+  },
+  {
+    id: 2, category: 'consolas',
+    title: 'PlayStation 5 Digital',
+    desc: 'Consola prácticamente nueva, 2 mandos incluidos. Solo 80h de uso.',
+    price: 399, image: 'https://via.placeholder.com/300x200/3498db/ffffff?text=PS5+Digital',
+    location: 'Barcelona', rating: 4.9, reviews: 41, badge: 'usado', fav: false,
+  },
+  {
+    id: 3, category: 'hogar',
+    title: 'Sofá 3 plazas gris',
+    desc: 'Tapizado en tela antimanchas. 2 años de uso, sin roturas.',
+    price: 280, image: 'https://via.placeholder.com/300x200/95a5a6/ffffff?text=Sofa+3+plazas',
+    location: 'Valencia', rating: 4.3, reviews: 7, badge: 'usado', fav: false,
+  },
+  {
+    id: 4, category: 'electronica',
+    title: 'MacBook Air M2',
+    desc: 'Portátil Apple M2 2023, 8GB RAM, 256GB SSD. Como nuevo.',
+    price: 899, image: 'https://via.placeholder.com/300x200/2c3e50/ffffff?text=MacBook+Air+M2',
+    location: 'Sevilla', rating: 5.0, reviews: 15, badge: 'nuevo', fav: false,
+  },
+  {
+    id: 5, category: 'moda',
+    title: 'Chaqueta Nike Windrunner',
+    desc: 'Talla M, color azul marino. Usada 3 veces, estado impecable.',
+    price: 45, image: 'https://via.placeholder.com/300x200/e74c3c/ffffff?text=Nike+Windrunner',
+    location: 'Bilbao', rating: 4.6, reviews: 12, badge: 'usado', fav: false,
+  },
+  {
+    id: 6, category: 'deportes',
+    title: 'Bicicleta de montaña Trek',
+    desc: '29 pulgadas, cambios Shimano. Revisada y lista para usar.',
+    price: 350, image: 'https://via.placeholder.com/300x200/27ae60/ffffff?text=Trek+MTB',
+    location: 'Zaragoza', rating: 4.7, reviews: 9, badge: 'usado', fav: false,
+  },
+  {
+    id: 7, category: 'moviles',
+    title: 'Samsung Galaxy S23',
+    desc: '128GB, color negro. Batería al 95%, con funda y cristal templado.',
+    price: 480, image: 'https://via.placeholder.com/300x200/2c3e50/ffffff?text=Galaxy+S23',
+    location: 'Madrid', rating: 4.5, reviews: 18, badge: 'usado', fav: false,
+  },
+  {
+    id: 8, category: 'hogar',
+    title: 'Robot aspirador Roomba j7',
+    desc: 'Con base de vaciado automático. Funciona perfectamente.',
+    price: 220, image: 'https://via.placeholder.com/300x200/e67e22/ffffff?text=Roomba+j7',
+    location: 'Barcelona', rating: 4.4, reviews: 6, badge: 'usado', fav: false,
+  },
+  {
+    id: 9, category: 'libros',
+    title: 'Pack Harry Potter (7 tomos)',
+    desc: 'Edición de bolsillo, en perfecto estado. Incluye los 7 libros.',
+    price: 35, image: 'https://via.placeholder.com/300x200/8e44ad/ffffff?text=Harry+Potter',
+    location: 'Granada', rating: 4.9, reviews: 31, badge: 'nuevo', fav: false,
+  },
+  {
+    id: 10, category: 'electronica',
+    title: 'Monitor 27" LG 4K',
+    desc: 'Panel IPS, 60Hz, sin píxeles muertos. Ideal para trabajo.',
+    price: 260, image: 'https://via.placeholder.com/300x200/16a085/ffffff?text=Monitor+LG+4K',
+    location: 'Valencia', rating: 4.7, reviews: 14, badge: 'usado', fav: false,
+  },
+];
+
+const PRODUCTS_TRUEQUE = [
+  {
+    id: 101, category: 'moviles',
+    title: 'Xiaomi Redmi Note 12',
+    desc: 'Intercambio por auriculares inalámbricos o smartwatch.',
+    price: null, tradeFor: '🎧 Auriculares o ⌚ Smartwatch',
+    image: 'https://via.placeholder.com/300x200/e74c3c/ffffff?text=Redmi+Note+12',
+    location: 'Madrid', rating: 4.2, reviews: 5, badge: 'trueque', fav: false,
+  },
+  {
+    id: 102, category: 'libros',
+    title: 'Colección Stephen King (15 libros)',
+    desc: 'Intercambio por libros de ciencia ficción o fantasía.',
+    price: null, tradeFor: '📚 Libros Sci-Fi / Fantasía',
+    image: 'https://via.placeholder.com/300x200/8e44ad/ffffff?text=Stephen+King',
+    location: 'Sevilla', rating: 4.8, reviews: 9, badge: 'trueque', fav: false,
+  },
+  {
+    id: 103, category: 'deportes',
+    title: 'Tabla de surf 6\'6"',
+    desc: 'En buen estado. Intercambio por bicicleta o material de esquí.',
+    price: null, tradeFor: '🚲 Bicicleta o 🎿 Material esquí',
+    image: 'https://via.placeholder.com/300x200/3498db/ffffff?text=Tabla+Surf',
+    location: 'Alicante', rating: 4.6, reviews: 3, badge: 'trueque', fav: false,
+  },
+  {
+    id: 104, category: 'electronica',
+    title: 'iPad Air 4ª generación',
+    desc: 'WiFi + cellular. Cambio por portátil Windows o MacBook.',
+    price: null, tradeFor: '💻 Portátil Windows / MacBook',
+    image: 'https://via.placeholder.com/300x200/1abc9c/ffffff?text=iPad+Air+4',
+    location: 'Barcelona', rating: 4.9, reviews: 7, badge: 'trueque', fav: false,
+  },
+  {
+    id: 105, category: 'moda',
+    title: 'Zapatillas Nike Air Max 90',
+    desc: 'Talla 42, usadas 2 veces. Cambio por otras zapatillas talla 42.',
+    price: null, tradeFor: '👟 Zapatillas talla 42',
+    image: 'https://via.placeholder.com/300x200/e67e22/ffffff?text=Air+Max+90',
+    location: 'Madrid', rating: 4.3, reviews: 4, badge: 'trueque', fav: false,
+  },
+];
+
+/* ============================================
+   VALUATION DATABASE (30+ products)
+============================================ */
+const VALUATION_DB = {
+  'iphone 15 pro max': { low: 1099, high: 1349, icon: '📱' },
+  'iphone 15 pro':     { low:  949, high: 1179, icon: '📱' },
+  'iphone 15':         { low:  749, high:  929, icon: '📱' },
+  'iphone 14 pro max': { low:  849, high: 1099, icon: '📱' },
+  'iphone 14 pro':     { low:  699, high:  899, icon: '📱' },
+  'iphone 14':         { low:  549, high:  749, icon: '📱' },
+  'iphone 13':         { low:  449, high:  649, icon: '📱' },
+  'iphone 13 pro':     { low:  549, high:  749, icon: '📱' },
+  'iphone 12':         { low:  299, high:  449, icon: '📱' },
+  'iphone se':         { low:  249, high:  399, icon: '📱' },
+  'samsung galaxy s24 ultra': { low: 1099, high: 1399, icon: '📱' },
+  'samsung galaxy s24':       { low:  699, high:  899, icon: '📱' },
+  'samsung galaxy s23':       { low:  449, high:  649, icon: '📱' },
+  'xiaomi 13 pro':     { low:  649, high:  849, icon: '📱' },
+  'xiaomi redmi note 12': { low: 159, high: 279, icon: '📱' },
+  'playstation 5':     { low:  449, high:  549, icon: '🎮' },
+  'ps5 digital':       { low:  349, high:  449, icon: '🎮' },
+  'xbox series x':     { low:  399, high:  549, icon: '🎮' },
+  'nintendo switch':   { low:  199, high:  299, icon: '🎮' },
+  'nintendo switch oled': { low: 279, high: 349, icon: '🎮' },
+  'macbook pro m3':    { low: 1599, high: 2199, icon: '💻' },
+  'macbook air m2':    { low:  849, high: 1149, icon: '💻' },
+  'macbook air m1':    { low:  649, high:  899, icon: '💻' },
+  'ipad pro 12.9':     { low:  799, high: 1199, icon: '📱' },
+  'ipad air':          { low:  499, high:  699, icon: '📱' },
+  'airpods pro 2':     { low:  189, high:  279, icon: '🎧' },
+  'airpods 3':         { low:  149, high:  199, icon: '🎧' },
+  'sony wh-1000xm5':  { low:  249, high:  379, icon: '🎧' },
+  'apple watch series 9': { low: 349, high: 499, icon: '⌚' },
+  'samsung galaxy watch 6': { low: 199, high: 299, icon: '⌚' },
+  'nike air max 90':   { low:   79, high:  130, icon: '👟' },
+  'nike air force 1':  { low:   69, high:  120, icon: '👟' },
+  'adidas ultraboost 23': { low: 89, high:  160, icon: '👟' },
+  'dyson v12':         { low:  389, high:  599, icon: '🏠' },
+  'roomba j7':         { low:  299, high:  499, icon: '🤖' },
+  'lg oled c3 55':     { low:  899, high: 1499, icon: '📺' },
+  'samsung qled 65':   { low:  799, high: 1299, icon: '📺' },
+  'bicicleta trek':    { low:  399, high:  799, icon: '🚲' },
+};
+
+const DAMAGE_KEYWORDS = {
+  'pantalla': -0.20, 'screen': -0.20, 'rota': -0.25, 'roto': -0.25,
+  'rayada': -0.12, 'rayado': -0.12, 'batería': -0.10, 'bateria': -0.10,
+  'carcasa': -0.08, 'golpe': -0.15, 'golpes': -0.18,
+  'cristal': -0.20, 'no funciona': -0.40, 'reparado': -0.15,
+  'manchas': -0.08, 'desgaste': -0.10, 'oxidado': -0.20,
+  'falta': -0.12, 'incompleto': -0.15, 'sin cargador': -0.05,
+};
+
+const CONDITION_MULTIPLIER = {
+  nuevo: 1.0, comoBueno: 0.85, bueno: 0.70, aceptable: 0.55,
+};
+
+/* ============================================
+   LANDING → INTERSTITIAL → APP
+============================================ */
+function startMode(mode) {
+  state.mode = mode;
+  document.getElementById('landing').style.display = 'none';
+  showInterstitial();
+}
+
+let countdownInterval = null;
+function showInterstitial() {
+  const el = document.getElementById('interstitial');
+  el.classList.remove('hidden');
+  let secs = 5;
+  const cd = document.getElementById('countdown');
+  const pb = document.getElementById('progress-bar');
+  pb.style.width = '100%';
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    secs--;
+    cd.textContent = secs;
+    pb.style.width = (secs / 5 * 100) + '%';
+    if (secs <= 0) { clearInterval(countdownInterval); finishInterstitial(); }
+  }, 1000);
+}
+
+function finishInterstitial() {
+  clearInterval(countdownInterval);
+  document.getElementById('interstitial').classList.add('hidden');
+  launchApp();
+}
+
+function launchApp() {
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  app.style.flexDirection = 'column';
+
+  // Update mode badge
+  const label = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
+  document.getElementById('mode-badge').innerHTML = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
+  document.getElementById('section-label').innerHTML = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
+
+  renderProducts();
+
+  // Show ILA after 2 seconds
+  setTimeout(() => {
+    document.getElementById('ila-bubble').classList.remove('hidden');
+  }, 2000);
+}
+
+function goBack() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('landing').style.display = 'flex';
+  document.getElementById('landing').style.flexDirection = 'column';
+  document.getElementById('ila-bubble').classList.add('hidden');
+}
+
+/* ============================================
+   PRODUCT RENDERING
+============================================ */
+function getProductList() {
+  return state.mode === 'trueque' ? PRODUCTS_TRUEQUE : PRODUCTS_COMPRAVENTA;
+}
+
+function renderProducts() {
+  const grid = document.getElementById('product-grid');
+  let list = getProductList();
+
+  // Category filter
+  if (state.currentCategory !== 'all') {
+    list = list.filter(p => p.category === state.currentCategory);
+  }
+
+  // Search filter
+  const query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+  if (query) {
+    list = list.filter(p =>
+      p.title.toLowerCase().includes(query) ||
+      p.desc.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query)
+    );
+  }
+
+  document.getElementById('product-count').textContent = list.length;
+
+  if (list.length === 0) {
+    grid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:var(--mid);padding:3rem">
+      😔 No se encontraron productos para esta búsqueda.
+    </p>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(p => renderCard(p)).join('');
+}
+
+function renderCard(p) {
+  const stars = '★'.repeat(Math.floor(p.rating)) + (p.rating % 1 >= 0.5 ? '½' : '');
+  const badgeClass = `badge-${p.badge}`;
+  const isSwap = p.badge === 'trueque';
+
+  const priceHtml = isSwap
+    ? `<span class="product-price trueque-price">🔄 ${p.tradeFor}</span>`
+    : `<span class="product-price">${p.price.toLocaleString('es-ES')} €</span>`;
+
+  const btnClass = isSwap ? 'btn-contact trueque' : 'btn-contact';
+  const btnText  = isSwap ? '🔄 Proponer trueque' : '💬 Contactar';
+
+  return `
+  <div class="product-card" data-id="${p.id}" data-category="${p.category}">
+    <div class="product-image">
+      <img src="${p.image}" alt="${p.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Imagen+no+disponible'" />
+      <span class="product-badge ${badgeClass}">${p.badge}</span>
+      <button class="product-fav" onclick="toggleFav(event,${p.id})" aria-label="Añadir a favoritos" title="Favorito">
+        ${p.fav ? '❤️' : '🤍'}
+      </button>
+    </div>
+    <div class="product-info">
+      <div class="product-title">${p.title}</div>
+      <div class="product-desc">${p.desc}</div>
+      <div class="product-meta">
+        ${priceHtml}
+        <div class="product-rating">
+          <span>${stars}</span>
+          <span class="count">(${p.reviews})</span>
+        </div>
+      </div>
+      <div class="product-location">📍 ${p.location}</div>
+      <button class="${btnClass}" onclick="contactProduct(${p.id})">${btnText}</button>
+    </div>
+  </div>`;
+}
+
+function toggleFav(e, id) {
+  e.stopPropagation();
+  const list = state.mode === 'trueque' ? PRODUCTS_TRUEQUE : PRODUCTS_COMPRAVENTA;
+  const p = list.find(x => x.id === id);
+  if (p) {
+    p.fav = !p.fav;
+    renderProducts();
+    showToast(p.fav ? '❤️ Añadido a favoritos' : '🤍 Eliminado de favoritos', 'info');
+  }
+}
+
+function contactProduct(id) {
+  showToast('💬 Abriendo chat con el vendedor…', 'success');
+}
+
+/* ============================================
+   CATEGORY & SEARCH FILTER
+============================================ */
+function filterByCategory(btn, cat) {
+  state.currentCategory = cat;
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
+}
+
+function filterProducts() {
+  renderProducts();
+}
+
+/* ============================================
+   MODAL HELPERS
+============================================ */
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  document.body.style.overflow = '';
+  if (id === 'registerModal') resetRegForm();
+}
+
+// Close on backdrop click
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target === el) closeModal(el.id);
+  });
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.overlay:not(.hidden)').forEach(el => closeModal(el.id));
+  }
+});
+
+/* ============================================
+   REGISTRATION
+============================================ */
+function openRegister() { openModal('registerModal'); }
+
+function resetRegForm() {
+  state.currentStep = 1;
+  state.regData = {};
+  state.smsCode = null;
+  showStep(1);
+  ['reg-email','reg-name','reg-pass','reg-phone','reg-sms'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['err-email','err-name','err-pass','err-phone','err-sms'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  updateStepDots(1);
+}
+
+function showStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById(`reg-step-${i}`);
+    if (el) el.classList.toggle('hidden', i !== n);
+  });
+  state.currentStep = n;
+}
+
+function updateStepDots(active) {
+  [1,2,3].forEach(i => {
+    const dot = document.getElementById(`step-dot-${i}`);
+    const line = document.getElementById(`step-line-${i}`);
+    dot.classList.remove('active','done');
+    if (i < active) { dot.classList.add('done'); dot.textContent = '✓'; }
+    else if (i === active) { dot.classList.add('active'); dot.textContent = i; }
+    else dot.textContent = i;
+    if (line) line.classList.toggle('done', i < active);
+  });
+}
+
+function regStep1Next() {
+  const email = document.getElementById('reg-email').value.trim();
+  const name  = document.getElementById('reg-name').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  let ok = true;
+
+  // Validate email
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) {
+    document.getElementById('err-email').classList.remove('hidden');
+    document.getElementById('reg-email').classList.add('error');
+    ok = false;
+  } else {
+    document.getElementById('err-email').classList.add('hidden');
+    document.getElementById('reg-email').classList.remove('error');
+  }
+
+  // Check duplicate email
+  if (ok && state.registeredEmails.includes(email)) {
+    showToast('⚠️ Este email ya está registrado', 'error');
+    ok = false;
+  }
+
+  // Validate name
+  if (name.length < 3) {
+    document.getElementById('err-name').classList.remove('hidden');
+    ok = false;
+  } else {
+    document.getElementById('err-name').classList.add('hidden');
+  }
+
+  // Validate password
+  const passRe = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+  if (!passRe.test(pass)) {
+    document.getElementById('err-pass').classList.remove('hidden');
+    document.getElementById('reg-pass').classList.add('error');
+    ok = false;
+  } else {
+    document.getElementById('err-pass').classList.add('hidden');
+    document.getElementById('reg-pass').classList.remove('error');
+  }
+
+  if (!ok) return;
+  state.regData.email = email;
+  state.regData.name  = name;
+  showStep(2);
+  updateStepDots(2);
+}
+
+function regGoBack()  { showStep(1); updateStepDots(1); }
+function regGoBack2() { showStep(2); updateStepDots(2); }
+
+function regStep2Next() {
+  const prefix = document.getElementById('reg-prefix').value;
+  const phone  = document.getElementById('reg-phone').value.replace(/\s/g, '');
+  const fullPhone = prefix + phone;
+
+  if (!/^\d{7,12}$/.test(phone)) {
+    document.getElementById('err-phone').classList.remove('hidden');
+    document.getElementById('reg-phone').classList.add('error');
+    return;
+  }
+  document.getElementById('err-phone').classList.add('hidden');
+  document.getElementById('reg-phone').classList.remove('error');
+
+  // Check duplicate phone
+  if (state.registeredPhones.includes(fullPhone)) {
+    showToast('⚠️ Este número ya está asociado a una cuenta', 'error');
+    return;
+  }
+
+  state.regData.phone = fullPhone;
+  sendSMS(fullPhone);
+  document.getElementById('display-phone').textContent = fullPhone;
+  showStep(3);
+  updateStepDots(3);
+}
+
+function sendSMS(phone) {
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  state.smsCode = code;
+  console.log(`%c📱 [CIRCULANDO SMS SIMULADO] Código de verificación para ${phone}: ${code}`, 'background:#27ae60;color:#fff;padding:4px 8px;border-radius:4px;font-size:14px');
+  showToast('📱 SMS enviado (código en consola del navegador)', 'info');
+}
+
+function resendSMS() {
+  const btn = document.getElementById('btn-resend');
+  btn.disabled = true;
+  sendSMS(state.regData.phone);
+  let secs = 30;
+  const t = setInterval(() => {
+    secs--;
+    btn.textContent = `Reenviar (${secs}s)`;
+    if (secs <= 0) {
+      clearInterval(t);
+      btn.disabled = false;
+      btn.textContent = 'Reenviar';
+    }
+  }, 1000);
+}
+
+function regStep3Verify() {
+  const code = document.getElementById('reg-sms').value.trim();
+  if (code !== state.smsCode) {
+    document.getElementById('err-sms').classList.remove('hidden');
+    document.getElementById('reg-sms').classList.add('error');
+    return;
+  }
+  document.getElementById('err-sms').classList.add('hidden');
+  document.getElementById('reg-sms').classList.remove('error');
+
+  const loader = document.getElementById('verify-loader');
+  loader.classList.remove('hidden');
+
+  setTimeout(() => {
+    loader.classList.add('hidden');
+    // Save to "security database"
+    state.registeredEmails.push(state.regData.email);
+    state.registeredPhones.push(state.regData.phone);
+    localStorage.setItem('circ_emails', JSON.stringify(state.registeredEmails));
+    localStorage.setItem('circ_phones', JSON.stringify(state.registeredPhones));
+    showStep(4);
+    updateStepDots(4);
+  }, 1500);
+}
+
+/* ============================================
+   VALUATION AGENT
+============================================ */
+function openValuation() { openModal('valuationModal'); }
+
+function suggestProducts() {
+  const q = (document.getElementById('val-search').value || '').toLowerCase().trim();
+  const container = document.getElementById('val-suggestions');
+  if (!q || q.length < 2) { container.innerHTML = ''; return; }
+
+  const matches = Object.keys(VALUATION_DB).filter(k => k.includes(q)).slice(0, 10);
+  container.innerHTML = matches.map(k =>
+    `<button class="val-chip" onclick="selectSuggestion('${k}')">${VALUATION_DB[k].icon} ${k}</button>`
+  ).join('');
+}
+
+function selectSuggestion(key) {
+  document.getElementById('val-search').value = key;
+  state.selectedProduct = key;
+  document.querySelectorAll('.val-chip').forEach(c => c.classList.toggle('selected', c.textContent.includes(key)));
+  calculateValuation();
+}
+
+function selectCondition(btn, cond) {
+  state.selectedCondition = cond;
+  document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if (state.selectedProduct) calculateValuation();
+}
+
+function analyzeDamage() {
+  const text  = (document.getElementById('val-damage').value || '').toLowerCase();
+  const tags  = [];
+  Object.keys(DAMAGE_KEYWORDS).forEach(kw => {
+    if (text.includes(kw)) tags.push(kw);
+  });
+  const container = document.getElementById('damage-tags');
+  container.innerHTML = tags.map(t => `<span class="damage-tag">⚠️ ${t}</span>`).join('');
+  if (state.selectedProduct) calculateValuation();
+}
+
+function analyzeValuation() {
+  const q = (document.getElementById('val-search').value || '').toLowerCase().trim();
+  if (!q) { showToast('Escribe el nombre de un producto', 'error'); return; }
+
+  // Exact match
+  let key = Object.keys(VALUATION_DB).find(k => k === q);
+  // Partial match
+  if (!key) key = Object.keys(VALUATION_DB).find(k => k.includes(q) || q.includes(k));
+
+  if (!key) { showToast('Producto no encontrado en la base de datos', 'error'); return; }
+  state.selectedProduct = key;
+  calculateValuation();
+}
+
+function calculateValuation() {
+  const key = state.selectedProduct;
+  if (!key || !VALUATION_DB[key]) return;
+
+  const base = VALUATION_DB[key];
+  const condMul = CONDITION_MULTIPLIER[state.selectedCondition] || 1;
+
+  // Damage analysis
+  const damageText = (document.getElementById('val-damage').value || '').toLowerCase();
+  let damageMul = 0;
+  let detectedDamages = [];
+  Object.entries(DAMAGE_KEYWORDS).forEach(([kw, factor]) => {
+    if (damageText.includes(kw)) {
+      damageMul += factor;
+      detectedDamages.push({ kw, factor });
+    }
+  });
+  damageMul = Math.max(damageMul, -0.6); // cap at -60%
+
+  const condLabel = { nuevo: 'Nuevo', comoBueno: 'Como nuevo', bueno: 'Bueno', aceptable: 'Aceptable' }[state.selectedCondition];
+
+  const adjustedLow  = Math.round(base.low  * condMul * (1 + damageMul));
+  const adjustedHigh = Math.round(base.high * condMul * (1 + damageMul));
+  const recommended  = Math.round((adjustedLow + adjustedHigh) / 2);
+
+  document.getElementById('val-res-name').textContent   = `${base.icon} ${key.charAt(0).toUpperCase() + key.slice(1)}`;
+  document.getElementById('val-price-low').textContent  = `${adjustedLow.toLocaleString('es-ES')} €`;
+  document.getElementById('val-price-high').textContent = `${adjustedHigh.toLocaleString('es-ES')} €`;
+  document.getElementById('val-price-rec').textContent  = `${recommended.toLocaleString('es-ES')} €`;
+
+  // Breakdown
+  const condPct  = Math.round((condMul - 1) * 100);
+  const damPct   = Math.round(damageMul * 100);
+  let breakdownHtml = `
+    <h4>Desglose de valoración</h4>
+    <div class="breakdown-row">
+      <span class="label">Precio base de mercado</span>
+      <span class="value">${base.low.toLocaleString('es-ES')}–${base.high.toLocaleString('es-ES')} €</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Estado: ${condLabel}</span>
+      <span class="value ${condPct < 0 ? 'neg' : 'pos'}">${condPct !== 0 ? condPct + '%' : 'Sin ajuste'}</span>
+    </div>`;
+
+  detectedDamages.forEach(({ kw, factor }) => {
+    breakdownHtml += `
+    <div class="breakdown-row">
+      <span class="label">⚠️ Daño: ${kw}</span>
+      <span class="value neg">${Math.round(factor * 100)}%</span>
+    </div>`;
+  });
+
+  breakdownHtml += `
+    <div class="breakdown-total">
+      <span>Precio recomendado</span>
+      <span>${recommended.toLocaleString('es-ES')} €</span>
+    </div>`;
+
+  document.getElementById('val-breakdown').innerHTML = breakdownHtml;
+  document.getElementById('val-results').classList.add('show');
+}
+
+/* ============================================
+   ILA PRESENTER
+============================================ */
+function toggleIla() {
+  state.ilaOpen = !state.ilaOpen;
+  document.getElementById('ila-panel').classList.toggle('hidden', !state.ilaOpen);
+}
+
+/* ============================================
+   TOAST
+============================================ */
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity .3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+/* ============================================
+   INIT
+============================================ */
+(function init() {
+  // Pre-populate suggestion chips on page load
+  const container = document.getElementById('val-suggestions');
+  const featured = ['iphone 15', 'playstation 5', 'macbook air m2', 'airpods pro 2', 'samsung galaxy s24'];
+  container.innerHTML = featured.map(k =>
+    `<button class="val-chip" onclick="selectSuggestion('${k}')">${VALUATION_DB[k]?.icon || '🏷️'} ${k}</button>`
+  ).join('');
+})();
+</script>
+</body>
+</html>
