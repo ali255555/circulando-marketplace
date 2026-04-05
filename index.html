@@ -513,7 +513,7 @@
         <div class="form-group" style="grid-column:1/-1;">
           <label>
             Nombre del Producto
-            <span class="tooltip-icon" data-tip="Escribe el nombre exacto para obtener precios de Idealo y El Corte Inglés con 99% certeza">⭐</span>
+            <span class="tooltip-icon" data-tip="Escribe el nombre del producto (completo o parcial) para obtener precios de Idealo y El Corte Inglés con 99% certeza">⭐</span>
           </label>
           <input type="text" id="val-nombre-producto" placeholder="Ej: MacBook Air M2, iPhone 15 Pro Max, Sony WH-1000XM5…">
           <span id="indicador-precios" style="display:none;margin-top:4px;font-size:0.8rem;color:#27ae60;font-weight:600;"></span>
@@ -1092,6 +1092,7 @@ const ValuationAgent = {
 
   /**
    * Busca el nombre del producto en realMarketDatabase usando coincidencia parcial.
+   * Requiere que la clave tenga al menos 5 caracteres para evitar falsos positivos.
    * @param {string} nombreProducto
    * @returns {{ entry: object|null, keyEncontrada: string|null }}
    */
@@ -1102,13 +1103,24 @@ const ValuationAgent = {
     const norm = nombreProducto.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+    // Two-pass: prefer the longest matching key to maximize precision
+    let bestEntry = null;
+    let bestKey = null;
+    let bestLen = 0;
+
     for (const [key, entry] of Object.entries(realMarketDatabase)) {
       const keyNorm = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      // Require key >= 5 chars AND query >= 5 chars to avoid over-broad matches (e.g. 'air')
+      if (keyNorm.length < 5 || norm.length < 5) continue;
       if (norm.includes(keyNorm) || keyNorm.includes(norm)) {
-        return { entry, keyEncontrada: key };
+        if (keyNorm.length > bestLen) {
+          bestLen = keyNorm.length;
+          bestEntry = entry;
+          bestKey = key;
+        }
       }
     }
-    return { entry: null, keyEncontrada: null };
+    return { entry: bestEntry, keyEncontrada: bestKey };
   },
 
   /**
