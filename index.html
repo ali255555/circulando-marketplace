@@ -1055,7 +1055,7 @@
           <input type="tel" id="reg-phone" placeholder="612 345 678" autocomplete="tel" style="flex:1" />
         </div>
         <p class="form-hint">Este número no será visible públicamente</p>
-        <p class="form-error hidden" id="err-phone">Número no válido (9 dígitos)</p>
+        <p class="form-error hidden" id="err-phone">Número no válido (7-12 dígitos)</p>
       </div>
       <p style="font-size:.85rem;color:var(--mid);margin-bottom:1.25rem;line-height:1.6">
         🛡️ Usamos tu número de móvil para verificar tu identidad y evitar cuentas duplicadas.
@@ -1431,9 +1431,9 @@ function launchApp() {
   app.style.flexDirection = 'column';
 
   // Update mode badge
-  const label = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
-  document.getElementById('mode-badge').innerHTML = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
-  document.getElementById('section-label').innerHTML = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
+  const modeLabel = state.mode === 'trueque' ? '🔄 Trueque' : '🛒 Compra &amp; Venta';
+  document.getElementById('mode-badge').innerHTML = modeLabel;
+  document.getElementById('section-label').innerHTML = modeLabel;
 
   renderProducts();
 
@@ -1488,6 +1488,12 @@ function renderProducts() {
   grid.innerHTML = list.map(p => renderCard(p)).join('');
 }
 
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function renderCard(p) {
   const stars = '★'.repeat(Math.floor(p.rating)) + (p.rating % 1 >= 0.5 ? '½' : '');
   const badgeClass = `badge-${p.badge}`;
@@ -1503,7 +1509,7 @@ function renderCard(p) {
   return `
   <div class="product-card" data-id="${p.id}" data-category="${p.category}">
     <div class="product-image">
-      <img src="${p.image}" alt="${p.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Imagen+no+disponible'" />
+      <img src="${p.image}" alt="${escHtml(p.title)}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Imagen+no+disponible'" />
       <span class="product-badge ${badgeClass}">${p.badge}</span>
       <button class="product-fav" onclick="toggleFav(event,${p.id})" aria-label="Añadir a favoritos" title="Favorito">
         ${p.fav ? '❤️' : '🤍'}
@@ -1614,10 +1620,20 @@ function updateStepDots(active) {
   [1,2,3].forEach(i => {
     const dot = document.getElementById(`step-dot-${i}`);
     const line = document.getElementById(`step-line-${i}`);
+    if (!dot) return;
     dot.classList.remove('active','done');
-    if (i < active) { dot.classList.add('done'); dot.textContent = '✓'; }
-    else if (i === active) { dot.classList.add('active'); dot.textContent = i; }
-    else dot.textContent = i;
+    if (i < active) {
+      dot.classList.add('done');
+      dot.textContent = '✓';
+      dot.setAttribute('aria-label', `Paso ${i}: completado`);
+    } else if (i === active) {
+      dot.classList.add('active');
+      dot.textContent = i;
+      dot.setAttribute('aria-label', `Paso ${i}: en progreso`);
+    } else {
+      dot.textContent = i;
+      dot.setAttribute('aria-label', `Paso ${i}: pendiente`);
+    }
     if (line) line.classList.toggle('done', i < active);
   });
 }
@@ -1760,14 +1776,14 @@ function suggestProducts() {
 
   const matches = Object.keys(VALUATION_DB).filter(k => k.includes(q)).slice(0, 10);
   container.innerHTML = matches.map(k =>
-    `<button class="val-chip" onclick="selectSuggestion('${k}')">${VALUATION_DB[k].icon} ${k}</button>`
+    `<button class="val-chip" data-key="${k}" onclick="selectSuggestion('${k}')">${VALUATION_DB[k].icon} ${k}</button>`
   ).join('');
 }
 
 function selectSuggestion(key) {
   document.getElementById('val-search').value = key;
   state.selectedProduct = key;
-  document.querySelectorAll('.val-chip').forEach(c => c.classList.toggle('selected', c.textContent.includes(key)));
+  document.querySelectorAll('.val-chip').forEach(c => c.classList.toggle('selected', c.dataset.key === key));
   calculateValuation();
 }
 
@@ -1897,7 +1913,7 @@ function showToast(msg, type = 'info') {
   const container = document.getElementById('val-suggestions');
   const featured = ['iphone 15', 'playstation 5', 'macbook air m2', 'airpods pro 2', 'samsung galaxy s24'];
   container.innerHTML = featured.map(k =>
-    `<button class="val-chip" onclick="selectSuggestion('${k}')">${VALUATION_DB[k]?.icon || '🏷️'} ${k}</button>`
+    `<button class="val-chip" data-key="${k}" onclick="selectSuggestion('${k}')">${VALUATION_DB[k]?.icon || '🏷️'} ${k}</button>`
   ).join('');
 })();
 </script>
