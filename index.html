@@ -1,67 +1,1083 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circulando Marketplace</title>
-    <style>
-        /* Basic CSS styles for the marketplace */
-        body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        header { background: #333; color: white; padding: 10px; text-align: center; }
-        footer { background: #333; color: white; padding: 10px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-        .product { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulando – Marketplace Sostenible</title>
+  <style>
+    /* ===== RESET & VARIABLES ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #00b894;
+      --teal: #00cec9;
+      --dark: #2d3436;
+      --light: #f5f6fa;
+      --white: #ffffff;
+      --gray: #636e72;
+      --shadow: 0 4px 24px rgba(0,0,0,.12);
+      --radius: 12px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light); color: var(--dark); }
+
+    /* ===== UTILITY ===== */
+    .hidden { display: none !important; }
+    .btn {
+      display: inline-block; padding: 10px 24px; border: none; border-radius: 50px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-secondary { background: var(--teal); color: #fff; }
+    .btn-outline { background: transparent; border: 2px solid var(--green); color: var(--green); }
+    .btn-ghost { background: transparent; color: var(--gray); border: 1px solid #dfe6e9; }
+
+    /* ===== LANDING PAGE ===== */
+    #landing {
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      background: linear-gradient(135deg, #00b894 0%, #00cec9 60%, #0984e3 100%);
+      color: #fff; padding: 40px 20px; position: relative; overflow: hidden;
+    }
+    #landing::before {
+      content: ''; position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    #landing .landing-logo {
+      font-size: clamp(52px, 10vw, 90px); font-weight: 800; letter-spacing: -2px;
+      text-shadow: 0 4px 20px rgba(0,0,0,.2); margin-bottom: 12px; animation: fadeDown .8s ease;
+    }
+    #landing .landing-tagline {
+      font-size: clamp(14px, 2.5vw, 19px); opacity: .9; max-width: 500px;
+      margin: 0 auto 40px; animation: fadeUp 1s ease .3s both;
+    }
+    #landing .landing-buttons {
+      display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 1s ease .5s both;
+    }
+    .landing-btn {
+      padding: 16px 44px; font-size: 18px; font-weight: 700; border-radius: 50px;
+      border: none; cursor: pointer; transition: all .2s; box-shadow: 0 6px 24px rgba(0,0,0,.2);
+    }
+    .landing-btn-buy { background: #fff; color: var(--green); }
+    .landing-btn-swap { background: rgba(255,255,255,.15); color: #fff; border: 2px solid rgba(255,255,255,.7); backdrop-filter: blur(6px); }
+    .landing-btn-buy:hover, .landing-btn-swap:hover { transform: translateY(-3px) scale(1.03); }
+    #landing .stat-badge {
+      margin-top: 50px; background: rgba(0,0,0,.25); backdrop-filter: blur(8px);
+      border-radius: 50px; padding: 10px 24px; font-size: 13px; opacity: .95;
+      animation: fadeUp 1.2s ease .7s both;
+    }
+    @keyframes fadeDown { from { opacity:0; transform: translateY(-30px); } to { opacity:1; transform: translateY(0); } }
+    @keyframes fadeUp   { from { opacity:0; transform: translateY(30px);  } to { opacity:1; transform: translateY(0); } }
+
+    /* ===== INTERSTITIAL ===== */
+    #interstitial {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, var(--dark) 0%, #2d3436 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center;
+    }
+    #interstitial h1 { font-size: clamp(40px, 8vw, 72px); font-weight: 800; color: var(--green); margin-bottom: 10px; }
+    #interstitial p  { font-size: clamp(15px, 2.5vw, 20px); opacity: .8; max-width: 420px; }
+    .interstitial-progress {
+      width: 200px; height: 4px; background: rgba(255,255,255,.2);
+      border-radius: 2px; margin-top: 40px; overflow: hidden;
+    }
+    .interstitial-bar {
+      height: 100%; background: var(--green); border-radius: 2px;
+      animation: progress 5s linear forwards;
+    }
+    @keyframes progress { from { width: 0; } to { width: 100%; } }
+    .interstitial-counter { margin-top: 12px; font-size: 13px; opacity: .5; }
+
+    /* ===== HEADER ===== */
+    #app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+    .header-main {
+      display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .header-logo {
+      font-size: 26px; font-weight: 800; color: var(--green); cursor: pointer;
+      text-decoration: none; flex-shrink: 0; letter-spacing: -1px;
+    }
+    .header-logo span { color: var(--teal); }
+    .header-nav { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-wrap: wrap; }
+    .header-nav .btn { padding: 8px 18px; font-size: 14px; }
+    .category-bar {
+      display: flex; gap: 6px; padding: 8px 24px; overflow-x: auto;
+      max-width: 1200px; margin: 0 auto; border-top: 1px solid #f0f0f0;
+    }
+    .category-bar::-webkit-scrollbar { height: 3px; }
+    .category-bar::-webkit-scrollbar-thumb { background: #dfe6e9; border-radius: 2px; }
+    .cat-btn {
+      white-space: nowrap; padding: 6px 16px; border-radius: 50px; font-size: 13px;
+      font-weight: 600; cursor: pointer; border: none; background: #f0f0f0; color: var(--dark);
+      transition: all .15s;
+    }
+    .cat-btn.active, .cat-btn:hover { background: var(--green); color: #fff; }
+    .mode-indicator {
+      text-align: center; padding: 6px; font-size: 12px; font-weight: 700;
+      color: #fff; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .mode-buy  { background: var(--green); }
+    .mode-swap { background: var(--teal); }
+
+    /* ===== MAIN CONTENT ===== */
+    #main-content { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+    .section-title {
+      font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--dark);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: ''; display: inline-block; width: 5px; height: 24px;
+      background: var(--green); border-radius: 3px;
+    }
+
+    /* ===== PRODUCT CARDS ===== */
+    .products-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .product-card {
+      background: var(--white); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden; transition: transform .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.15); }
+    .product-img {
+      width: 100%; height: 180px; object-fit: cover;
+      background: linear-gradient(135deg, #dfe6e9, #b2bec3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 60px; position: relative;
+    }
+    .product-badge {
+      position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 50px;
+      font-size: 11px; font-weight: 700; color: #fff;
+    }
+    .badge-new  { background: var(--green); }
+    .badge-good { background: #fdcb6e; color: #2d3436; }
+    .badge-fair { background: #e17055; }
+    .swap-badge { background: var(--teal); }
+    .product-body { padding: 14px; }
+    .product-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .product-desc { font-size: 12px; color: var(--gray); margin-bottom: 8px; line-height: 1.4; }
+    .product-rating { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+    .stars { color: #fdcb6e; font-size: 14px; }
+    .rating-count { font-size: 12px; color: var(--gray); }
+    .product-price { font-size: 22px; font-weight: 800; color: var(--green); }
+    .product-price-old { font-size: 13px; color: var(--gray); text-decoration: line-through; margin-left: 6px; }
+    .swap-label { font-size: 13px; color: var(--teal); font-weight: 600; }
+    .product-footer { display: flex; gap: 8px; margin-top: 12px; }
+    .product-footer .btn { flex: 1; padding: 8px; font-size: 13px; }
+
+    /* ===== MODALS ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.5);
+      backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;
+      padding: 20px; animation: fadeInOverlay .2s ease;
+    }
+    @keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } }
+    .modal-box {
+      background: var(--white); border-radius: 20px; width: 100%; max-width: 480px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.25); animation: slideInModal .3s ease;
+      max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes slideInModal { from { opacity:0; transform: scale(.94) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px 16px; border-bottom: 1px solid #f0f0f0;
+    }
+    .modal-header h2 { font-size: 20px; font-weight: 700; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%; border: none; background: #f0f0f0;
+      font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid #f0f0f0; display: flex; gap: 12px; justify-content: flex-end; }
+
+    /* ===== REGISTRATION MODAL ===== */
+    .reg-steps { display: flex; gap: 0; margin-bottom: 28px; }
+    .reg-step {
+      flex: 1; text-align: center; padding: 8px 4px; font-size: 12px; font-weight: 600;
+      color: var(--gray); border-bottom: 3px solid #dfe6e9; position: relative; transition: all .3s;
+    }
+    .reg-step.active  { color: var(--green); border-bottom-color: var(--green); }
+    .reg-step.done    { color: var(--teal);  border-bottom-color: var(--teal); }
+    .reg-step-num {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 4px; font-size: 13px; font-weight: 700;
+      background: #dfe6e9; color: var(--gray); transition: all .3s;
+    }
+    .reg-step.active .reg-step-num  { background: var(--green); color: #fff; }
+    .reg-step.done   .reg-step-num  { background: var(--teal);  color: #fff; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--dark); }
+    .form-group input {
+      width: 100%; padding: 12px 16px; border: 2px solid #dfe6e9; border-radius: 10px;
+      font-size: 15px; outline: none; transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: var(--green); }
+    .form-group input.error { border-color: #e17055; }
+    .form-error { font-size: 12px; color: #e17055; margin-top: 4px; }
+    .reg-slogan {
+      font-size: 12px; color: var(--gray); text-align: center; font-style: italic;
+      margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 8px;
+    }
+    .sms-code-inputs { display: flex; gap: 8px; justify-content: center; margin: 20px 0; }
+    .sms-digit {
+      width: 48px; height: 56px; border: 2px solid #dfe6e9; border-radius: 10px;
+      font-size: 24px; font-weight: 700; text-align: center; outline: none; transition: all .2s;
+    }
+    .sms-digit:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,184,148,.15); }
+    .sms-hint { font-size: 13px; color: var(--gray); text-align: center; }
+    .sms-hint a { color: var(--green); cursor: pointer; text-decoration: none; font-weight: 600; }
+    .success-icon { font-size: 64px; text-align: center; margin: 10px 0 16px; animation: bounceIn .5s ease; }
+    @keyframes bounceIn {
+      0%   { transform: scale(0); opacity: 0; }
+      60%  { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .success-title { font-size: 24px; font-weight: 800; text-align: center; color: var(--green); }
+    .success-msg   { font-size: 14px; color: var(--gray); text-align: center; margin-top: 8px; }
+
+    /* ===== VALUATION MODAL ===== */
+    .valuation-search { display: flex; gap: 8px; margin-bottom: 20px; }
+    .valuation-search input {
+      flex: 1; padding: 12px 16px; border: 2px solid #dfe6e9; border-radius: 10px;
+      font-size: 15px; outline: none; transition: border-color .2s;
+    }
+    .valuation-search input:focus { border-color: var(--green); }
+    .valuation-results { max-height: 300px; overflow-y: auto; }
+    .val-item {
+      padding: 12px; border: 1px solid #f0f0f0; border-radius: 10px; margin-bottom: 8px;
+      cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 12px;
+    }
+    .val-item:hover { border-color: var(--green); background: #f0fdf9; }
+    .val-item.selected { border-color: var(--green); background: #e6f9f3; }
+    .val-item-icon { font-size: 30px; flex-shrink: 0; }
+    .val-item-info { flex: 1; }
+    .val-item-name  { font-size: 14px; font-weight: 700; }
+    .val-item-cat   { font-size: 11px; color: var(--gray); }
+    .val-item-price { font-size: 15px; font-weight: 800; color: var(--green); text-align: right; }
+    .damage-section { margin: 20px 0; }
+    .damage-section h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .damage-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .damage-opt {
+      padding: 10px; border: 2px solid #dfe6e9; border-radius: 10px; cursor: pointer;
+      text-align: center; font-size: 13px; font-weight: 600; transition: all .15s;
+    }
+    .damage-opt:hover  { border-color: var(--teal); }
+    .damage-opt.active { border-color: var(--green); background: #e6f9f3; color: var(--green); }
+    .price-breakdown { background: #f8f9fa; border-radius: 12px; padding: 16px; margin-top: 16px; }
+    .price-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .price-row.total { border-top: 2px solid var(--green); margin-top: 8px; padding-top: 10px; font-weight: 800; font-size: 16px; color: var(--green); }
+    .certainty-badge { display: inline-block; background: var(--green); color: #fff; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; margin-top: 8px; }
+
+    /* ===== ILA PRESENTER ===== */
+    #ila-bubble {
+      position: fixed; bottom: 24px; right: 24px; z-index: 500;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+    }
+    .ila-message {
+      background: var(--white); border-radius: 16px 16px 4px 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15); padding: 16px 18px;
+      max-width: 280px; font-size: 13px; line-height: 1.5; position: relative;
+      animation: fadeUp .4s ease;
+    }
+    .ila-message strong { color: var(--green); }
+    .ila-message .ila-close {
+      position: absolute; top: 8px; right: 8px; width: 20px; height: 20px;
+      border-radius: 50%; border: none; background: #f0f0f0; font-size: 12px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .ila-avatar {
+      width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--green);
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,184,148,.4);
+      transition: transform .2s;
+    }
+    .ila-avatar:hover { transform: scale(1.1); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--dark); color: #b2bec3; margin-top: 60px; padding: 40px 24px 20px;
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-top {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px; margin-bottom: 32px;
+    }
+    .footer-logo { font-size: 28px; font-weight: 800; color: var(--green); letter-spacing: -1px; margin-bottom: 8px; }
+    .footer-logo span { color: var(--teal); }
+    .footer-desc { font-size: 13px; line-height: 1.6; }
+    .footer-col h4 { color: #fff; font-size: 14px; margin-bottom: 12px; }
+    .footer-col a {
+      display: block; color: #b2bec3; font-size: 13px; text-decoration: none;
+      margin-bottom: 8px; transition: color .15s;
+    }
+    .footer-col a:hover { color: var(--green); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 20px; text-align: center; font-size: 12px; }
+
+    /* ===== TOAST ===== */
+    #toast-container { position: fixed; top: 24px; right: 24px; z-index: 9000; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      background: var(--dark); color: #fff; padding: 12px 20px; border-radius: 10px;
+      font-size: 14px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px;
+      animation: slideInToast .3s ease; max-width: 320px;
+    }
+    .toast.success { border-left: 4px solid var(--green); }
+    .toast.error   { border-left: 4px solid #e17055; }
+    .toast.info    { border-left: 4px solid var(--teal); }
+    @keyframes slideInToast { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .header-main { padding: 10px 16px; }
+      .header-nav .btn-ghost { display: none; }
+      .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      .damage-options { grid-template-columns: 1fr; }
+      #main-content { padding: 20px 14px; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-    <h1>Welcome to Circulando Marketplace</h1>
-</header>
+<!-- ===== INTERSTITIAL ===== -->
+<div id="interstitial">
+  <h1>Circulando</h1>
+  <p>El marketplace sostenible donde los objetos encuentran una segunda vida</p>
+  <div class="interstitial-progress"><div class="interstitial-bar"></div></div>
+  <div class="interstitial-counter" id="interstitial-counter">Cargando en 5…</div>
+</div>
 
-<section id="registration">
-    <h2>Register</h2>
-    <form id="registration-form">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="text" name="phone" placeholder="Phone Number" required>
-        <button type="submit">Register</button>
-    </form>
-    <div id="sms-verification" style="display:none;">
-        <input type="text" placeholder="Enter SMS Code">
-        <button onclick="verifySMS()">Verify</button>
+<!-- ===== LANDING PAGE ===== -->
+<div id="landing">
+  <div class="landing-logo">Circulando</div>
+  <p class="landing-tagline">El marketplace sostenible de segunda mano.<br>Compra, vende o intercambia con confianza.</p>
+  <div class="landing-buttons">
+    <button class="landing-btn landing-btn-buy" onclick="enterMode('buy')">🛒 Compra / Venta</button>
+    <button class="landing-btn landing-btn-swap" onclick="enterMode('swap')">🔄 Trueque</button>
+  </div>
+  <div class="stat-badge">📊 El 45% de los artículos de segunda mano jamás llegan a venderse</div>
+</div>
+
+<!-- ===== APP HEADER ===== -->
+<div id="app-header" class="hidden">
+  <div class="header-main">
+    <a class="header-logo" onclick="goToLanding()">Circulan<span>do</span></a>
+    <nav class="header-nav">
+      <button class="btn btn-ghost" onclick="goBack()">← Atrás</button>
+      <button class="btn btn-outline" onclick="openValuation()">🔍 Valorar</button>
+      <button class="btn btn-ghost" id="btn-login" onclick="openLogin()">Entrar</button>
+      <button class="btn btn-primary" id="btn-register" onclick="openRegister()">Registro</button>
+    </nav>
+  </div>
+  <div id="mode-bar" class="mode-indicator mode-buy"></div>
+  <div class="category-bar" id="category-bar"></div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main id="main-content" class="hidden">
+  <div class="section-title" id="section-title">Productos</div>
+  <div class="products-grid" id="products-grid"></div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer id="app-footer" class="hidden">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">Circulan<span>do</span></div>
+        <p class="footer-desc">Marketplace sostenible de segunda mano. Dale una segunda vida a tus objetos.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Marketplace</h4>
+        <a href="#" onclick="enterMode('buy');return false;">Compra / Venta</a>
+        <a href="#" onclick="enterMode('swap');return false;">Trueque</a>
+        <a href="#" onclick="openValuation();return false;">Valorar artículo</a>
+      </div>
+      <div class="footer-col">
+        <h4>Cuenta</h4>
+        <a href="#" onclick="openRegister();return false;">Crear cuenta</a>
+        <a href="#" onclick="openLogin();return false;">Iniciar sesión</a>
+        <a href="#">Mi perfil</a>
+      </div>
+      <div class="footer-col">
+        <h4>Circulando</h4>
+        <a href="#">Sobre nosotros</a>
+        <a href="#">Sostenibilidad</a>
+        <a href="#">Contacto</a>
+        <a href="#">Política de privacidad</a>
+      </div>
     </div>
-</section>
-
-<section id="products">
-    <h2>Products</h2>
-    <div class="grid">
-        <!-- Products will be dynamically created here -->
-        <div class="product">Product 1</div>
-        <div class="product">Product 2</div>
-        <div class="product">Product 3</div>
-        <!-- more products -->
+    <div class="footer-bottom">
+      <p>&copy; 2026 Circulando Marketplace &mdash; Todos los derechos reservados</p>
     </div>
-</section>
-
-<footer>
-    <p>&copy; 2026 Circulando Marketplace</p>
+  </div>
 </footer>
 
+<!-- ===== ILA PRESENTER ===== -->
+<div id="ila-bubble">
+  <div class="ila-message" id="ila-message">
+    <button class="ila-close" onclick="toggleIla()">×</button>
+    <strong>¡Hola, soy ILA!</strong> 👋<br>
+    Tu asistente de seguridad en Circulando.<br><br>
+    🔒 <strong>Recuerda:</strong> Nunca compartas tus datos bancarios con otros usuarios. Usa siempre nuestro sistema de pagos protegido.
+  </div>
+  <div class="ila-avatar" onclick="toggleIla()" title="ILA – Asistente de seguridad">🤖</div>
+</div>
+
+<!-- ===== REGISTRATION MODAL ===== -->
+<div class="modal-overlay hidden" id="modal-register">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Crear cuenta</h2>
+      <button class="modal-close" onclick="closeModal('modal-register')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="reg-steps">
+        <div class="reg-step active" id="step-ind-1">
+          <div class="reg-step-num">1</div>Tus datos
+        </div>
+        <div class="reg-step" id="step-ind-2">
+          <div class="reg-step-num">2</div>Verificar SMS
+        </div>
+        <div class="reg-step" id="step-ind-3">
+          <div class="reg-step-num">3</div>¡Listo!
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div id="reg-step-1">
+        <p class="reg-slogan">"El email es para registrarte, el número para protegerte"</p>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" />
+          <div class="form-error hidden" id="err-email">Introduce un email válido</div>
+        </div>
+        <div class="form-group">
+          <label>Teléfono móvil</label>
+          <input type="tel" id="reg-phone" placeholder="+34 6XX XXX XXX" />
+          <div class="form-error hidden" id="err-phone">Introduce un teléfono móvil válido</div>
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" placeholder="Mínimo 8 caracteres" />
+          <div class="form-error hidden" id="err-pass">La contraseña debe tener al menos 8 caracteres</div>
+        </div>
+        <div class="form-error hidden" id="err-duplicate">⚠️ Este email o teléfono ya está registrado. Usa otra cuenta.</div>
+        <button class="btn btn-primary" style="width:100%;padding:13px" onclick="regStep1()">Continuar →</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="reg-step-2" class="hidden">
+        <p style="font-size:14px;color:var(--gray);margin-bottom:20px;text-align:center;">
+          Hemos enviado un código de 6 dígitos a tu móvil.<br>
+          <strong id="reg-phone-display"></strong>
+        </p>
+        <div class="sms-code-inputs">
+          <input class="sms-digit" maxlength="1" id="d0" oninput="smsInput(0)" onkeydown="smsBack(event,0)" />
+          <input class="sms-digit" maxlength="1" id="d1" oninput="smsInput(1)" onkeydown="smsBack(event,1)" />
+          <input class="sms-digit" maxlength="1" id="d2" oninput="smsInput(2)" onkeydown="smsBack(event,2)" />
+          <input class="sms-digit" maxlength="1" id="d3" oninput="smsInput(3)" onkeydown="smsBack(event,3)" />
+          <input class="sms-digit" maxlength="1" id="d4" oninput="smsInput(4)" onkeydown="smsBack(event,4)" />
+          <input class="sms-digit" maxlength="1" id="d5" oninput="smsInput(5)" onkeydown="smsBack(event,5)" />
+        </div>
+        <div class="form-error hidden" id="err-sms" style="text-align:center;">Código incorrecto. Inténtalo de nuevo.</div>
+        <p class="sms-hint">¿No recibiste el código? <a onclick="resendSMS()">Reenviar</a></p>
+        <button class="btn btn-primary" style="width:100%;padding:13px;margin-top:16px" onclick="regStep2()">Verificar →</button>
+      </div>
+
+      <!-- Step 3 -->
+      <div id="reg-step-3" class="hidden">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">¡Registro completado!</div>
+        <p class="success-msg">Tu cuenta ha sido creada y verificada con éxito.<br>Ya puedes comprar, vender y hacer trueques en Circulando.</p>
+        <button class="btn btn-primary" style="width:100%;padding:13px;margin-top:24px" onclick="closeModal('modal-register')">Empezar a usar Circulando →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div class="modal-overlay hidden" id="modal-login">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Iniciar sesión</h2>
+      <button class="modal-close" onclick="closeModal('modal-login')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••" />
+      </div>
+      <div class="form-error hidden" id="err-login">Email o contraseña incorrectos.</div>
+      <button class="btn btn-primary" style="width:100%;padding:13px" onclick="doLogin()">Entrar</button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--gray)">
+        ¿No tienes cuenta? <a style="color:var(--green);cursor:pointer;font-weight:600" onclick="switchModal('modal-login','modal-register')">Regístrate</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VALUATION MODAL ===== -->
+<div class="modal-overlay hidden" id="modal-valuation">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <h2>🔍 Agente de Valoración</h2>
+      <button class="modal-close" onclick="closeModal('modal-valuation')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="valuation-search">
+        <input type="text" id="val-search" placeholder="Busca un producto (ej: iPhone, PlayStation, Nike…)" oninput="filterValProducts()" />
+        <button class="btn btn-primary" onclick="filterValProducts()">Buscar</button>
+      </div>
+      <div class="valuation-results" id="val-results"></div>
+
+      <div id="val-detail" class="hidden">
+        <div class="damage-section">
+          <h4>Estado del artículo</h4>
+          <div class="damage-options">
+            <div class="damage-opt active" data-dmg="0" onclick="selectDamage(this, 0)">✨ Como nuevo (0%)</div>
+            <div class="damage-opt" data-dmg="10" onclick="selectDamage(this, 10)">👍 Muy bueno (−10%)</div>
+            <div class="damage-opt" data-dmg="25" onclick="selectDamage(this, 25)">👌 Bueno (−25%)</div>
+            <div class="damage-opt" data-dmg="40" onclick="selectDamage(this, 40)">⚠️ Aceptable (−40%)</div>
+            <div class="damage-opt" data-dmg="60" onclick="selectDamage(this, 60)">🔧 Con daños (−60%)</div>
+            <div class="damage-opt" data-dmg="80" onclick="selectDamage(this, 80)">💔 Muy dañado (−80%)</div>
+          </div>
+        </div>
+        <div class="price-breakdown" id="val-breakdown">
+          <div class="price-row"><span>Precio Idealo (mín.)</span><span id="val-min">—</span></div>
+          <div class="price-row"><span>Precio El Corte Inglés (máx.)</span><span id="val-max">—</span></div>
+          <div class="price-row"><span>Ajuste por estado</span><span id="val-adj">—</span></div>
+          <div class="price-row total"><span>Valoración estimada</span><span id="val-final">—</span></div>
+          <div style="text-align:center;margin-top:8px">
+            <span class="certainty-badge">✅ Certeza: 99%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== JAVASCRIPT ===== -->
 <script>
-    // JavaScript functionality
-    document.getElementById('registration-form').onsubmit = function(event) {
-        event.preventDefault();
-        // Call SMS API and show verification input
-        document.getElementById('sms-verification').style.display = 'block';
-    };
+// ============================================================
+// DATABASE
+// ============================================================
+const USERS_DB = [];   // { email, phone, passHash }
+const SESSIONS = {};   // simple session store
 
-    function verifySMS() {
-        // Verification logic
-        alert('SMS Verified!');
+const CATEGORIES_BUY  = ['Todos','Electrónica','Ropa','Hogar','Deportes','Libros','Juguetes','Coches','Música'];
+const CATEGORIES_SWAP = ['Todos','Electrónica','Ropa','Hogar','Deportes','Juguetes'];
+
+const PRODUCTS_BUY = [
+  { id:1,  name:'iPhone 13 Pro',        emoji:'📱', cat:'Electrónica', price:549, oldPrice:979,  rating:4.8, reviews:124, cond:'Muy bueno',  badgeClass:'badge-good', desc:'128 GB, Space Grey, carga rápida, pantalla OLED perfecta.' },
+  { id:2,  name:'MacBook Air M1',        emoji:'💻', cat:'Electrónica', price:749, oldPrice:1249, rating:4.9, reviews:87,  cond:'Como nuevo',  badgeClass:'badge-new',  desc:'8 GB RAM, 256 GB SSD, batería 90%. Incluye cargador.' },
+  { id:3,  name:'Nike Air Max 270',      emoji:'👟', cat:'Ropa',        price:59,  oldPrice:130,  rating:4.5, reviews:43,  cond:'Bueno',       badgeClass:'badge-good', desc:'Talla 42, color negro/blanco, poco uso.' },
+  { id:4,  name:'PlayStation 5',         emoji:'🎮', cat:'Electrónica', price:399, oldPrice:549,  rating:4.7, reviews:201, cond:'Como nuevo',  badgeClass:'badge-new',  desc:'Edición estándar con 2 mandos y 3 juegos.' },
+  { id:5,  name:'Bicicleta de montaña',  emoji:'🚲', cat:'Deportes',    price:280, oldPrice:600,  rating:4.6, reviews:35,  cond:'Bueno',       badgeClass:'badge-good', desc:'Shimano 21v, cuadro aluminio, ruedas 29".' },
+  { id:6,  name:'Sofá 3 plazas',         emoji:'🛋️', cat:'Hogar',       price:180, oldPrice:499,  rating:4.4, reviews:22,  cond:'Aceptable',   badgeClass:'badge-fair', desc:'Color gris antracita, pequeña mancha en lateral.' },
+  { id:7,  name:'Cámara Sony A6400',     emoji:'📷', cat:'Electrónica', price:480, oldPrice:850,  rating:4.8, reviews:67,  cond:'Como nuevo',  badgeClass:'badge-new',  desc:'Cuerpo + objetivo 16-50mm, 2 baterías, bolsa.' },
+  { id:8,  name:'Libro: Sapiens',        emoji:'📚', cat:'Libros',      price:8,   oldPrice:22,   rating:4.9, reviews:310, cond:'Bueno',       badgeClass:'badge-good', desc:'Yuval Noah Harari. Tapas duras, sin subrayados.' },
+  { id:9,  name:'Lego Technic 42110',    emoji:'🧱', cat:'Juguetes',    price:95,  oldPrice:219,  rating:4.7, reviews:58,  cond:'Como nuevo',  badgeClass:'badge-new',  desc:'Land Rover Defender completo con caja original.' },
+  { id:10, name:'Guitarra Yamaha FG800', emoji:'🎸', cat:'Música',      price:120, oldPrice:230,  rating:4.6, reviews:29,  cond:'Bueno',       badgeClass:'badge-good', desc:'Acústica, tapa sólida, incluye funda y cuerdas nuevas.' },
+];
+
+const PRODUCTS_SWAP = [
+  { id:101, name:'iPad Air 4',          emoji:'📱', cat:'Electrónica', swapFor:'Portátil o tablet similar', rating:4.6, reviews:15, desc:'64 GB, WiFi, con Smart Keyboard. En perfecto estado.' },
+  { id:102, name:'Bota de esquí Rossignol', emoji:'⛷️', cat:'Deportes', swapFor:'Tabla de surf o patines', rating:4.4, reviews:8,  desc:'Talla 44, poco uso, incluye bolsa.' },
+  { id:103, name:'Cafetera De\'Longhi',  emoji:'☕', cat:'Hogar',       swapFor:'Robot aspirador',           rating:4.5, reviews:11, desc:'Espresso totalmente automática, excelente estado.' },
+  { id:104, name:'Chaqueta North Face',  emoji:'🧥', cat:'Ropa',        swapFor:'Zapatillas running T44',    rating:4.7, reviews:19, desc:'Talla L, impermeable, gore-tex.' },
+  { id:105, name:'Nintendo Switch OLED', emoji:'🎮', cat:'Electrónica', swapFor:'Bicicleta o patinete',      rating:4.9, reviews:42, desc:'Con 5 juegos, 2 Joy-Con, dock y caja original.' },
+];
+
+const VALUATION_DB = [
+  { name:'iPhone 13',       cat:'📱 Móviles',      emoji:'📱', min:299, max:779  },
+  { name:'iPhone 13 Pro',   cat:'📱 Móviles',      emoji:'📱', min:399, max:1129 },
+  { name:'iPhone 14',       cat:'📱 Móviles',      emoji:'📱', min:499, max:999  },
+  { name:'iPhone 14 Pro',   cat:'📱 Móviles',      emoji:'📱', min:599, max:1299 },
+  { name:'iPhone 15',       cat:'📱 Móviles',      emoji:'📱', min:699, max:1099 },
+  { name:'Samsung Galaxy S22', cat:'📱 Móviles',   emoji:'📱', min:249, max:849  },
+  { name:'Samsung Galaxy S23', cat:'📱 Móviles',   emoji:'📱', min:349, max:999  },
+  { name:'Google Pixel 7',  cat:'📱 Móviles',      emoji:'📱', min:299, max:599  },
+  { name:'MacBook Air M1',  cat:'💻 Portátiles',   emoji:'💻', min:599, max:1299 },
+  { name:'MacBook Air M2',  cat:'💻 Portátiles',   emoji:'💻', min:799, max:1499 },
+  { name:'MacBook Pro 14"', cat:'💻 Portátiles',   emoji:'💻', min:999, max:2499 },
+  { name:'Dell XPS 15',     cat:'💻 Portátiles',   emoji:'💻', min:699, max:1899 },
+  { name:'iPad Air 4',      cat:'📟 Tablets',      emoji:'📟', min:299, max:699  },
+  { name:'iPad Pro 11"',    cat:'📟 Tablets',      emoji:'📟', min:499, max:1199 },
+  { name:'PlayStation 5',   cat:'🎮 Videojuegos',  emoji:'🎮', min:349, max:549  },
+  { name:'Xbox Series X',   cat:'🎮 Videojuegos',  emoji:'🎮', min:299, max:499  },
+  { name:'Nintendo Switch', cat:'🎮 Videojuegos',  emoji:'🎮', min:149, max:329  },
+  { name:'Nintendo Switch OLED', cat:'🎮 Videojuegos', emoji:'🎮', min:199, max:379 },
+  { name:'AirPods Pro',     cat:'🎧 Audio',        emoji:'🎧', min:129, max:279  },
+  { name:'Sony WH-1000XM5', cat:'🎧 Audio',        emoji:'🎧', min:199, max:399  },
+  { name:'Bose QC45',       cat:'🎧 Audio',        emoji:'🎧', min:149, max:329  },
+  { name:'Apple Watch S8',  cat:'⌚ Relojes',       emoji:'⌚', min:199, max:479  },
+  { name:'Samsung Watch 5', cat:'⌚ Relojes',       emoji:'⌚', min:149, max:349  },
+  { name:'Nike Air Max 270',cat:'👟 Zapatillas',   emoji:'👟', min:49,  max:150  },
+  { name:'Adidas Ultraboost',cat:'👟 Zapatillas',  emoji:'👟', min:59,  max:180  },
+  { name:'PS4 Pro',         cat:'🎮 Videojuegos',  emoji:'🎮', min:149, max:299  },
+  { name:'GoPro Hero 10',   cat:'📷 Cámaras',      emoji:'📷', min:199, max:499  },
+  { name:'Sony Alpha A6400',cat:'📷 Cámaras',      emoji:'📷', min:399, max:999  },
+  { name:'Canon EOS M50',   cat:'📷 Cámaras',      emoji:'📷', min:299, max:699  },
+  { name:'Kindle Paperwhite', cat:'📚 Lectores',   emoji:'📚', min:49,  max:149  },
+  { name:'Dyson V11',       cat:'🏠 Hogar',        emoji:'🧹', min:199, max:599  },
+  { name:'Roomba i7',       cat:'🏠 Hogar',        emoji:'🤖', min:249, max:699  },
+  { name:'Thermomix TM6',   cat:'🏠 Hogar',        emoji:'🍲', min:699, max:1399 },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentMode       = 'buy';   // 'buy' | 'swap'
+let currentCategory   = 'Todos';
+let currentRegStep    = 1;
+let currentSmsCode    = '';
+let currentRegEmail   = '';
+let currentRegPhone   = '';
+let currentRegPass    = '';
+let selectedValProduct = null;
+let selectedDamage     = 0;
+let ilaVisible         = true;
+let isLoggedIn         = false;
+let currentUser        = null;
+
+// ============================================================
+// INTERSTITIAL
+// ============================================================
+(function startInterstitial() {
+  let count = 5;
+  const el = document.getElementById('interstitial-counter');
+  const interval = setInterval(() => {
+    count--;
+    el.textContent = count > 0 ? `Cargando en ${count}…` : 'Entrando…';
+    if (count <= 0) {
+      clearInterval(interval);
+      document.getElementById('interstitial').style.opacity = '0';
+      document.getElementById('interstitial').style.transition = 'opacity .5s';
+      setTimeout(() => {
+        document.getElementById('interstitial').style.display = 'none';
+      }, 500);
     }
+  }, 1000);
+})();
 
-    // Additional JavaScript for product database and security measures
+function generateSmsCode() {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return String(100000 + (arr[0] % 900000));
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function normalizePhone(phone) { return phone.replace(/\s/g, ''); }
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function enterMode(mode) {
+  currentMode = mode;
+  currentCategory = 'Todos';
+
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('app-header').classList.remove('hidden');
+  document.getElementById('main-content').classList.remove('hidden');
+  document.getElementById('app-footer').classList.remove('hidden');
+
+  const modeBar = document.getElementById('mode-bar');
+  if (mode === 'buy') {
+    modeBar.textContent = '🛒 Compra / Venta';
+    modeBar.className = 'mode-indicator mode-buy';
+  } else {
+    modeBar.textContent = '🔄 Trueque';
+    modeBar.className = 'mode-indicator mode-swap';
+  }
+
+  buildCategoryBar(mode === 'buy' ? CATEGORIES_BUY : CATEGORIES_SWAP);
+  renderProducts();
+}
+
+function goToLanding() {
+  document.getElementById('landing').classList.remove('hidden');
+  document.getElementById('app-header').classList.add('hidden');
+  document.getElementById('main-content').classList.add('hidden');
+  document.getElementById('app-footer').classList.add('hidden');
+}
+
+function goBack() {
+  goToLanding();
+}
+
+// ============================================================
+// CATEGORY BAR
+// ============================================================
+function buildCategoryBar(cats) {
+  const bar = document.getElementById('category-bar');
+  bar.innerHTML = cats.map(c =>
+    `<button class="cat-btn${c === currentCategory ? ' active' : ''}" onclick="selectCategory('${c}')">${c}</button>`
+  ).join('');
+}
+
+function selectCategory(cat) {
+  currentCategory = cat;
+  buildCategoryBar(currentMode === 'buy' ? CATEGORIES_BUY : CATEGORIES_SWAP);
+  renderProducts();
+}
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+function renderProducts() {
+  const grid = document.getElementById('products-grid');
+  const title = document.getElementById('section-title');
+
+  if (currentMode === 'buy') {
+    title.textContent = '🛒 Artículos en venta';
+    const filtered = currentCategory === 'Todos'
+      ? PRODUCTS_BUY
+      : PRODUCTS_BUY.filter(p => p.cat === currentCategory);
+    grid.innerHTML = filtered.length
+      ? filtered.map(renderBuyCard).join('')
+      : '<p style="color:var(--gray);padding:20px">No hay artículos en esta categoría.</p>';
+  } else {
+    title.textContent = '🔄 Artículos para trueque';
+    const filtered = currentCategory === 'Todos'
+      ? PRODUCTS_SWAP
+      : PRODUCTS_SWAP.filter(p => p.cat === currentCategory);
+    grid.innerHTML = filtered.length
+      ? filtered.map(renderSwapCard).join('')
+      : '<p style="color:var(--gray);padding:20px">No hay artículos en esta categoría.</p>';
+  }
+}
+
+function renderBuyCard(p) {
+  const stars = '★'.repeat(Math.floor(p.rating)) + (p.rating % 1 >= 0.5 ? '½' : '');
+  return `
+    <div class="product-card">
+      <div class="product-img">
+        <span class="product-badge ${p.badgeClass}">${p.cond}</span>
+        <span style="font-size:64px">${p.emoji}</span>
+      </div>
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-rating">
+          <span class="stars">${stars}</span>
+          <span class="rating-count">${p.rating} (${p.reviews})</span>
+        </div>
+        <div>
+          <span class="product-price">${p.price}€</span>
+          <span class="product-price-old">${p.oldPrice}€</span>
+        </div>
+        <div class="product-footer">
+          <button class="btn btn-primary" onclick="buyProduct(${p.id})">Comprar</button>
+          <button class="btn btn-ghost" onclick="openValuation()">Valorar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderSwapCard(p) {
+  const stars = '★'.repeat(Math.floor(p.rating)) + (p.rating % 1 >= 0.5 ? '½' : '');
+  return `
+    <div class="product-card">
+      <div class="product-img">
+        <span class="product-badge swap-badge">Trueque</span>
+        <span style="font-size:64px">${p.emoji}</span>
+      </div>
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-rating">
+          <span class="stars">${stars}</span>
+          <span class="rating-count">${p.rating} (${p.reviews})</span>
+        </div>
+        <div class="swap-label">🔄 Busca: ${p.swapFor}</div>
+        <div class="product-footer">
+          <button class="btn btn-secondary" onclick="proposeSwap(${p.id})">Proponer trueque</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buyProduct(id) {
+  if (!isLoggedIn) { openRegister(); showToast('info','Regístrate para comprar'); return; }
+  showToast('success', '¡Producto añadido al carrito!');
+}
+
+function proposeSwap(id) {
+  if (!isLoggedIn) { openRegister(); showToast('info','Regístrate para proponer trueques'); return; }
+  showToast('success', '¡Propuesta de trueque enviada!');
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function switchModal(from, to) { closeModal(from); openModal(to); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.add('hidden');
+  });
+});
+
+// ============================================================
+// REGISTRATION
+// ============================================================
+function openRegister() {
+  resetRegistration();
+  openModal('modal-register');
+}
+function openLogin() { openModal('modal-login'); }
+
+function resetRegistration() {
+  currentRegStep = 1;
+  currentRegEmail = ''; currentRegPhone = ''; currentRegPass = '';
+  document.getElementById('reg-email').value = '';
+  document.getElementById('reg-phone').value = '';
+  document.getElementById('reg-pass').value  = '';
+  document.getElementById('err-email').classList.add('hidden');
+  document.getElementById('err-phone').classList.add('hidden');
+  document.getElementById('err-pass').classList.add('hidden');
+  document.getElementById('err-duplicate').classList.add('hidden');
+  for (let i = 0; i < 6; i++) { const el = document.getElementById('d' + i); if (el) el.value = ''; }
+  showRegStep(1);
+}
+
+function showRegStep(step) {
+  [1, 2, 3].forEach(n => {
+    document.getElementById('reg-step-' + n).classList.toggle('hidden', n !== step);
+    const ind = document.getElementById('step-ind-' + n);
+    ind.classList.remove('active', 'done');
+    if (n < step) ind.classList.add('done');
+    else if (n === step) ind.classList.add('active');
+  });
+  currentRegStep = step;
+}
+
+function regStep1() {
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  let valid = true;
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById('err-email').classList.toggle('hidden', emailOk);
+  if (!emailOk) { document.getElementById('reg-email').classList.add('error'); valid = false; }
+  else document.getElementById('reg-email').classList.remove('error');
+
+  const phoneOk = /^[\+\d][\d\s\-]{8,15}$/.test(phone);
+  document.getElementById('err-phone').classList.toggle('hidden', phoneOk);
+  if (!phoneOk) { document.getElementById('reg-phone').classList.add('error'); valid = false; }
+  else document.getElementById('reg-phone').classList.remove('error');
+
+  const passOk = pass.length >= 8;
+  document.getElementById('err-pass').classList.toggle('hidden', passOk);
+  if (!passOk) { document.getElementById('reg-pass').classList.add('error'); valid = false; }
+  else document.getElementById('reg-pass').classList.remove('error');
+
+  if (!valid) return;
+
+  const normalizedPhone = normalizePhone(phone);
+
+  // Security: check for duplicate accounts
+  const dup = USERS_DB.find(u => u.email === email || u.phone === normalizedPhone);
+  document.getElementById('err-duplicate').classList.toggle('hidden', !dup);
+  if (dup) return;
+
+  currentRegEmail = email;
+  currentRegPhone = phone;
+  currentRegPass  = pass;
+
+  // Generate SMS code using cryptographically secure random (demo: shown in console)
+  currentSmsCode = generateSmsCode();
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    console.log(`[Circulando SMS] Código de verificación para ${phone}: ${currentSmsCode}`);
+  }
+  showToast('info', `SMS enviado a ${phone} (ver consola)`);
+
+  document.getElementById('reg-phone-display').textContent = phone;
+  showRegStep(2);
+  setTimeout(() => document.getElementById('d0').focus(), 100);
+}
+
+function smsInput(index) {
+  const el = document.getElementById('d' + index);
+  el.value = el.value.replace(/\D/g, '');
+  if (el.value && index < 5) {
+    document.getElementById('d' + (index + 1)).focus();
+  }
+}
+
+function smsBack(e, index) {
+  if (e.key === 'Backspace' && !document.getElementById('d' + index).value && index > 0) {
+    document.getElementById('d' + (index - 1)).focus();
+  }
+}
+
+function regStep2() {
+  const entered = Array.from({length:6}, (_,i) => document.getElementById('d'+i).value).join('');
+  const errEl = document.getElementById('err-sms');
+  if (entered !== currentSmsCode) {
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  // Persist user with hashed password (demo: btoa; use bcrypt server-side in production)
+  USERS_DB.push({ email: currentRegEmail, phone: normalizePhone(currentRegPhone), passHash: btoa(currentRegPass) });
+  isLoggedIn = true;
+  currentUser = { email: currentRegEmail, phone: currentRegPhone };
+  updateAuthUI();
+  showRegStep(3);
+}
+
+function resendSMS() {
+  currentSmsCode = generateSmsCode();
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    console.log(`[Circulando SMS] Nuevo código para ${currentRegPhone}: ${currentSmsCode}`);
+  }
+  showToast('info', 'Nuevo código enviado (ver consola)');
+}
+
+function updateAuthUI() {
+  if (isLoggedIn && currentUser) {
+    document.getElementById('btn-login').classList.add('hidden');
+    document.getElementById('btn-register').textContent = currentUser.email.split('@')[0];
+    document.getElementById('btn-register').onclick = () => showToast('info', `Sesión activa: ${currentUser.email}`);
+  }
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const user  = USERS_DB.find(u => u.email === email);
+  const errEl = document.getElementById('err-login');
+  if (!user || !pass || user.passHash !== btoa(pass)) { errEl.classList.remove('hidden'); return; }
+  errEl.classList.add('hidden');
+  isLoggedIn  = true;
+  currentUser = user;
+  updateAuthUI();
+  closeModal('modal-login');
+  showToast('success', `¡Bienvenido/a de nuevo, ${email.split('@')[0]}!`);
+}
+
+// ============================================================
+// VALUATION AGENT
+// ============================================================
+function openValuation() {
+  selectedValProduct = null;
+  selectedDamage = 0;
+  document.getElementById('val-search').value = '';
+  document.getElementById('val-detail').classList.add('hidden');
+  renderValProducts(VALUATION_DB);
+  openModal('modal-valuation');
+}
+
+function filterValProducts() {
+  const q = document.getElementById('val-search').value.toLowerCase();
+  const filtered = q
+    ? VALUATION_DB.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q))
+    : VALUATION_DB;
+  renderValProducts(filtered);
+  selectedValProduct = null;
+  document.getElementById('val-detail').classList.add('hidden');
+}
+
+function renderValProducts(list) {
+  const el = document.getElementById('val-results');
+  if (!list.length) { el.innerHTML = '<p style="color:var(--gray);padding:12px">Sin resultados.</p>'; return; }
+  el.innerHTML = list.map(p => `
+    <div class="val-item" onclick="selectValProduct('${p.name}')">
+      <div class="val-item-icon">${p.emoji}</div>
+      <div class="val-item-info">
+        <div class="val-item-name">${p.name}</div>
+        <div class="val-item-cat">${p.cat}</div>
+      </div>
+      <div class="val-item-price">${p.min}€–${p.max}€</div>
+    </div>`).join('');
+}
+
+function selectValProduct(name) {
+  selectedValProduct = VALUATION_DB.find(p => p.name === name);
+  if (!selectedValProduct) return;
+  document.querySelectorAll('.val-item').forEach(el => el.classList.remove('selected'));
+  const items = document.querySelectorAll('.val-item');
+  items.forEach(el => { if (el.querySelector('.val-item-name').textContent === name) el.classList.add('selected'); });
+  selectedDamage = 0;
+  document.querySelectorAll('.damage-opt').forEach(el => {
+    el.classList.toggle('active', el.dataset.dmg === '0');
+  });
+  document.getElementById('val-detail').classList.remove('hidden');
+  updateValuation();
+}
+
+function selectDamage(el, pct) {
+  selectedDamage = pct;
+  document.querySelectorAll('.damage-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  updateValuation();
+}
+
+function updateValuation() {
+  if (!selectedValProduct) return;
+  const { min, max } = selectedValProduct;
+  const midpoint = Math.round((min + max) / 2);
+  const adj = Math.round(midpoint * (selectedDamage / 100));
+  const final = midpoint - adj;
+  document.getElementById('val-min').textContent   = `${min}€`;
+  document.getElementById('val-max').textContent   = `${max}€`;
+  document.getElementById('val-adj').textContent   = selectedDamage > 0 ? `−${adj}€` : '0€';
+  document.getElementById('val-final').textContent = `${final}€`;
+}
+
+// ============================================================
+// ILA PRESENTER
+// ============================================================
+function toggleIla() {
+  ilaVisible = !ilaVisible;
+  document.getElementById('ila-message').classList.toggle('hidden', !ilaVisible);
+}
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
+function showToast(type, message) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type]||'•'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .4s'; setTimeout(() => toast.remove(), 400); }, 3500);
+}
+
+// ============================================================
+// KEYBOARD ACCESSIBILITY
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+  }
+});
 </script>
-
 </body>
 </html>
