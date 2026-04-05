@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circulando Marketplace</title>
+    <style>
+        /* Basic CSS styles for the marketplace */
+        body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        header { background: #333; color: white; padding: 10px; text-align: center; }
+        footer { background: #333; color: white; padding: 10px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .product { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Welcome to Circulando Marketplace</h1>
+</header>
+
+<section id="registration">
+    <h2>Register</h2>
+    <form id="registration-form">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="text" name="phone" placeholder="Phone Number" required>
+        <button type="submit">Register</button>
+    </form>
+    <div id="sms-verification" style="display:none;">
+        <input type="text" placeholder="Enter SMS Code">
+        <button onclick="verifySMS()">Verify</button>
+    </div>
+</section>
+
+<section id="products">
+    <h2>Products</h2>
+    <div class="grid">
+        <!-- Products will be dynamically created here -->
+        <div class="product">Product 1</div>
+        <div class="product">Product 2</div>
+        <div class="product">Product 3</div>
+        <!-- more products -->
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Circulando Marketplace</p>
+</footer>
+
+<script>
+    // JavaScript functionality
+    document.getElementById('registration-form').onsubmit = function(event) {
+        event.preventDefault();
+        // Call SMS API and show verification input
+        document.getElementById('sms-verification').style.display = 'block';
+    };
+
+    function verifySMS() {
+        // Verification logic
+        alert('SMS Verified!');
+    }
+
+    // Additional JavaScript for product database and security measures
+</script>
+
+</body>
+</html>
